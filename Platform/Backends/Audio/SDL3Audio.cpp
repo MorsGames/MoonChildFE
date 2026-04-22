@@ -98,14 +98,8 @@ static void CleanUpMusicStuff(MusicState& musicState)
     musicState.Active = false;
 }
 
-static void CleanUpMovieStuff(MovieState& movieState)
-{
-    SDL_DestroyAudioStream(movieState.Converter);
-    movieState.Converter = nullptr;
-}
-
 static void SDLCALL FeedMusicConverter(void* /*UserData*/, SDL_AudioStream* stream,
-                                       int /*AdditionalAmount*/, int /*TotalAmount*/)
+                                       int AdditionalAmount, int /*TotalAmount*/)
 {
     if (!Music.Active || !Music.Source.IsOpen())
     {
@@ -113,8 +107,16 @@ static void SDLCALL FeedMusicConverter(void* /*UserData*/, SDL_AudioStream* stre
     }
 
     const int channels = Music.Source.GetChannelCount();
+    const int bytesPerFrame = channels * static_cast<int>(sizeof(float));
+    if (bytesPerFrame <= 0 || AdditionalAmount <= 0)
+    {
+        return;
+    }
 
-    const size_t framesRead = Music.Source.ReadFrames(MusicDecodeScratch, MUSIC_DECODE_BATCH_FRAMES);
+    const int requestedFrames = (AdditionalAmount + bytesPerFrame - 1) / bytesPerFrame;
+    const int framesToRead = std::min(requestedFrames, MUSIC_DECODE_BATCH_FRAMES);
+
+    const size_t framesRead = Music.Source.ReadFrames(MusicDecodeScratch, static_cast<size_t>(framesToRead));
     if (framesRead == 0)
     {
         return;
@@ -575,13 +577,15 @@ void SDL3Audio::SubmitMovieAudio(const float* samples, int sampleCount)
 
 void SDL3Audio::CloseMovieStream()
 {
-    if (Movie.Converter == nullptr)
+    SDL_AudioStream* converter = Movie.Converter;
+    if (converter == nullptr)
     {
         return;
     }
 
     SDL_LockAudioStream(Sfx.Stream);
-    SDL_LockAudioStream(Movie.Converter);
-    CleanUpMovieStuff(Movie);
+    Movie.Converter = nullptr;
     SDL_UnlockAudioStream(Sfx.Stream);
+
+    SDL_DestroyAudioStream(converter);
 }

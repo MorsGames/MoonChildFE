@@ -5865,7 +5865,8 @@ void check_keys(void)
 
 void handleinput1shot(void)
 {
-  InputBridge::SetContext((ingameflg != 0 && puzzleactiveflg == 0) ? InputBridge::INPUT_CONTEXT_GAME : InputBridge::INPUT_CONTEXT_MENU);
+  const bool isThisMenu = ingameflg != 0 && puzzleactiveflg == 0 && mcsmk == 0;
+  InputBridge::SetContext(isThisMenu ? InputBridge::INPUT_CONTEXT_GAME : InputBridge::INPUT_CONTEXT_MENU);
   InputBridge::SetBindings(prefs->upkey, prefs->downkey, prefs->leftkey, prefs->rightkey, prefs->jumpkey, prefs->shootkey);
 
   leftkey  = 0;
@@ -5877,7 +5878,7 @@ void handleinput1shot(void)
 
 
 
-  if (ingameflg == 0 || puzzleactiveflg)     // are we in the titlescreen right now??
+  if (!isThisMenu)     // are we in the titlescreen right now??
   {
     if (keytab[VK_LEFT])
     {
@@ -5950,7 +5951,8 @@ void handleinput1shot(void)
 
 void handleinputloop(void)
 {
-  InputBridge::SetContext((ingameflg != 0 && puzzleactiveflg == 0) ? InputBridge::INPUT_CONTEXT_GAME : InputBridge::INPUT_CONTEXT_MENU);
+  const bool isThisMenu = ingameflg != 0 && puzzleactiveflg == 0 && mcsmk == 0;
+  InputBridge::SetContext(isThisMenu ? InputBridge::INPUT_CONTEXT_GAME : InputBridge::INPUT_CONTEXT_MENU);
   InputBridge::SetBindings(prefs->upkey, prefs->downkey, prefs->leftkey, prefs->rightkey, prefs->jumpkey, prefs->shootkey);
 
   leftkey  = 0;
@@ -5960,7 +5962,7 @@ void handleinputloop(void)
   jumpkey  = 0;
   shootkey = 0;
 
-  if (ingameflg == 0 || puzzleactiveflg)
+  if (!isThisMenu)
     {
       if (keytab[VK_LEFT])
         {

@@ -166,15 +166,20 @@ void Host::RunFrame()
     Accumulator += deltaNs;
     Accumulator = std::min<uint64_t>(Accumulator, tickNs * 5ull);
 
+    bool advancedFrame = false;
     while (Accumulator >= tickNs && Running)
     {
         TickFramework(tickDuration);
         Accumulator -= tickNs;
+        advancedFrame = true;
     }
 
-    Backends.Renderer->BeginFrame();
-    Backends.Renderer->DrawFrame(PixelBuffer.get(), GAME_FRAMEBUFFER_WIDTH, GAME_FRAMEBUFFER_HEIGHT);
-    Backends.Renderer->EndFrame();
+    if (advancedFrame && Running)
+    {
+        Backends.Renderer->BeginFrame();
+        Backends.Renderer->DrawFrame(PixelBuffer.get(), GAME_FRAMEBUFFER_WIDTH, GAME_FRAMEBUFFER_HEIGHT);
+        Backends.Renderer->EndFrame();
+    }
 }
 
 void Host::DetachBridges()
