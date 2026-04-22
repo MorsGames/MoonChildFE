@@ -1,0 +1,175 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build Game (WinX64, Debug)",
+            "type": "shell",
+            "command": "\"${workspaceFolder}\\Scripts\\BuildGameWin.bat\"",
+            "args": [
+                "Debug"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "shell": {
+                    "executable": "${env:ComSpec}",
+                    "args": [
+                        "/d",
+                        "/c"
+                    ]
+                }
+            }
+        },
+        {
+            "label": "Build Game (WinX64, Release)",
+            "type": "shell",
+            "command": "\"${workspaceFolder}\\Scripts\\BuildGameWin.bat\"",
+            "args": [
+                "Release"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "shell": {
+                    "executable": "${env:ComSpec}",
+                    "args": [
+                        "/d",
+                        "/c"
+                    ]
+                }
+            }
+        },
+        {
+            "label": "Build Game (WinX86, Debug)",
+            "type": "shell",
+            "command": "\"${workspaceFolder}\\Scripts\\BuildGameWin.bat\"",
+            "args": [
+                "Debug",
+                "WinX86"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "shell": {
+                    "executable": "${env:ComSpec}",
+                    "args": [
+                        "/d",
+                        "/c"
+                    ]
+                }
+            }
+        },
+        {
+            "label": "Build Game (WinX86, Release)",
+            "type": "shell",
+            "command": "\"${workspaceFolder}\\Scripts\\BuildGameWin.bat\"",
+            "args": [
+                "Release",
+                "WinX86"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "shell": {
+                    "executable": "${env:ComSpec}",
+                    "args": [
+                        "/d",
+                        "/c"
+                    ]
+                }
+            }
+        },
+        {
+            "label": "Build Game (LinuxX64, Debug)",
+            "type": "shell",
+            "command": "wsl.exe --cd \"${workspaceFolder}\" bash ./Scripts/BuildGameLinux.sh Debug LinuxX64",
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "shell": {
+                    "executable": "${env:ComSpec}",
+                    "args": [
+                        "/d",
+                        "/c"
+                    ]
+                }
+            }
+        },
+        {
+            "label": "Build Game (LinuxX64, Release)",
+            "type": "shell",
+            "command": "wsl.exe --cd \"${workspaceFolder}\" bash ./Scripts/BuildGameLinux.sh Release LinuxX64",
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "shell": {
+                    "executable": "${env:ComSpec}",
+                    "args": [
+                        "/d",
+                        "/c"
+                    ]
+                }
+            }
+        },
+        {
+            "label": "Build Game (LinuxArm64, Debug)",
+            "type": "shell",
+            "command": "wsl.exe --cd \"${workspaceFolder}\" bash ./Scripts/BuildGameLinux.sh Debug LinuxArm64",
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "shell": {
+                    "executable": "${env:ComSpec}",
+                    "args": [
+                        "/d",
+                        "/c"
+                    ]
+                }
+            }
+        },
+        {
+            "label": "Build Game (LinuxArm64, Release)",
+            "type": "shell",
+            "command": "wsl.exe --cd \"${workspaceFolder}\" bash ./Scripts/BuildGameLinux.sh Release LinuxArm64",
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "shell": {
+                    "executable": "${env:ComSpec}",
+                    "args": [
+                        "/d",
+                        "/c"
+                    ]
+                }
+            }
+        },
+        {
+            "label": "Build Game (WASM, Debug)",
+            "type": "shell",
+            "command": "\"${workspaceFolder}\\Scripts\\BuildGameWasm.bat\"",
+            "args": [
+                "Debug"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "shell": {
+                    "executable": "${env:ComSpec}",
+                    "args": [
+                        "/d",
+                        "/c"
+                    ]
+                }
+            }
+        },
+        {
+            "label": "Build Game (WASM, Release)",
+            "type": "shell",
+            "command": "\"${workspaceFolder}\\Scripts\\BuildGameWasm.bat\"",
+            "args": [
+                "Release"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "shell": {
+                    "executable": "${env:ComSpec}",
+                    "args": [
+                        "/d",
+                        "/c"
+                    ]
+                }
+            }
+        }
+    ]
+}

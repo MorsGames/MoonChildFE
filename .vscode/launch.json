@@ -1,0 +1,67 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Game (WinX64)",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/Bin/WinX64/Debug/MoonChildFE.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}/Bin/WinX64/Debug",
+            "preLaunchTask": "Build Game (WinX64, Debug)",
+        },
+        {
+            "name": "Debug Game (WinX86)",
+            "type": "node-terminal",
+            "request": "launch",
+            "preLaunchTask": "Build Game (WinX86, Debug)",
+            "command": "powershell.exe -NoProfile -Command \"Set-Location -LiteralPath '${workspaceFolder}/Bin/WinX86/Debug'; ./MoonChildFE.exe\"",
+        },
+        {
+            "name": "Debug Game (LinuxX64)",
+            "type": "node-terminal",
+            "request": "launch",
+            "preLaunchTask": "Build Game (LinuxX64, Debug)",
+            "command": "wsl.exe --cd \"${workspaceFolder}\\Bin\\LinuxX64\\Debug\" ./MoonChildFE",
+        },
+        {
+            "name": "Debug Game (WASM)",
+            "type": "node-terminal",
+            "request": "launch",
+            "preLaunchTask": "Build Game (WASM, Debug)",
+            "cwd": "${workspaceFolder}/Bin/Web/Debug",
+            "command": "python -m http.server 8008 --bind 127.0.0.1",
+        },
+        {
+            "name": "Run Game (WinX64)",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/Bin/WinX64/Release/MoonChildFE.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}/Bin/WinX64/Release",
+            "preLaunchTask": "Build Game (WinX64, Release)",
+        },
+        {
+            "name": "Run Game (WinX86)",
+            "type": "node-terminal",
+            "request": "launch",
+            "preLaunchTask": "Build Game (WinX86, Release)",
+            "command": "powershell.exe -NoProfile -Command \"Set-Location -LiteralPath '${workspaceFolder}/Bin/WinX86/Release'; ./MoonChildFE.exe\"",
+        },
+        {
+            "name": "Run Game (LinuxX64)",
+            "type": "node-terminal",
+            "request": "launch",
+            "preLaunchTask": "Build Game (LinuxX64, Release)",
+            "command": "wsl.exe --cd \"${workspaceFolder}\\Bin\\LinuxX64\\Release\" ./MoonChildFE",
+        },
+        {
+            "name": "Run Game (WASM)",
+            "type": "node-terminal",
+            "request": "launch",
+            "preLaunchTask": "Build Game (WASM, Release)",
+            "cwd": "${workspaceFolder}/Bin/Web/Release",
+            "command": "python -m http.server 8008 --bind 127.0.0.1",
+        },
+    ]
+}

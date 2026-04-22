@@ -1,0 +1,217 @@
+name: CMake on multiple platforms
+
+on:
+  push:
+    branches: [ "master" ]
+    tags: [ "v*" ]
+  pull_request:
+    branches: [ "master" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      # Set fail-fast to false to ensure that feedback is delivered for all matrix combinations. Consider changing this to true when your workflow is stable.
+      fail-fast: false
+
+      matrix:
+        include:
+          - name: Windows x64
+            os: windows-latest
+            msvc_dev_arch: x64
+            configure_preset: winx64-release
+            build_preset: build-winx64-release
+            artifact_platform: WinX64
+          - name: Windows x86
+            os: windows-latest
+            msvc_dev_arch: amd64_x86
+            configure_preset: winx86-release
+            build_preset: build-winx86-release
+            artifact_platform: WinX86
+          - name: Linux x64
+            os: ubuntu-latest
+            configure_preset: linuxx64-release
+            build_preset: build-linuxx64-release
+            artifact_platform: LinuxX64
+          - name: Web
+            os: ubuntu-latest
+            configure_preset: wasm-release
+            build_preset: build-wasm-release
+            artifact_platform: Web
+            emscripten: true
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Set up CMake
+      uses: jwlawson/actions-setup-cmake@v2
+      with:
+        cmake-version: "3.31.x"
+
+    - name: Set up the MSVC environment for clang-cl
+      if: runner.os == 'Windows'
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: ${{ matrix.msvc_dev_arch }}
+
+    - name: Install LLVM on Windows
+      if: runner.os == 'Windows'
+      uses: KyleMayes/install-llvm-action@v2
+      with:
+        version: "19.1.7"
+
+    - name: Install Ninja on Windows
+      if: runner.os == 'Windows'
+      run: choco install ninja -y
+
+    - name: Install Linux dependencies
+      if: runner.os == 'Linux' && matrix.artifact_platform != 'Web'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends \
+          build-essential \
+          ninja-build \
+          clang \
+          pkg-config \
+          libasound2-dev libpulse-dev \
+          libaudio-dev libjack-dev libsndio-dev \
+          libfribidi-dev libthai-dev \
+          libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev \
+          libxi-dev libxss-dev libxxf86vm-dev libxtst-dev \
+          libxkbcommon-dev \
+          libwayland-dev wayland-protocols \
+          libdrm-dev libgbm-dev \
+          libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev \
+          libdbus-1-dev libibus-1.0-dev libudev-dev
+
+    - name: Install Emscripten dependencies
+      if: matrix.emscripten == true
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends ninja-build python3 git
+
+    - name: Set up Emscripten
+      if: matrix.emscripten == true
+      shell: bash
+      run: |
+        set -eux
+        git clone https://github.com/emscripten-core/emsdk.git "$RUNNER_TEMP/emsdk"
+        "$RUNNER_TEMP/emsdk/emsdk" install latest
+        "$RUNNER_TEMP/emsdk/emsdk" activate latest
+        source "$RUNNER_TEMP/emsdk/emsdk_env.sh"
+        {
+          echo "EMSDK=$EMSDK"
+          echo "EM_CONFIG=${EM_CONFIG:-$EMSDK/.emscripten}"
+          echo "EM_CACHE=${EM_CACHE:-$EMSDK/upstream/emscripten/cache}"
+          echo "EMSDK_NODE=${EMSDK_NODE:-}"
+        } >> "$GITHUB_ENV"
+        {
+          echo "$EMSDK"
+          echo "$EMSDK/upstream/emscripten"
+          if [ -n "${EMSDK_NODE:-}" ]; then
+            dirname "$EMSDK_NODE"
+          fi
+        } >> "$GITHUB_PATH"
+
+    - name: Configure
+      run: cmake --preset ${{ matrix.configure_preset }}
+
+    - name: Build
+      run: cmake --build --preset ${{ matrix.build_preset }}
+
+    - name: Upload the CI artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: MoonChildFE-${{ matrix.artifact_platform }}
+        path: Bin/${{ matrix.artifact_platform }}/Release/
+        if-no-files-found: error
+
+  release:
+    name: GitHub Release
+    needs: build
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - name: Download the Windows x64 artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: MoonChildFE-WinX64
+        path: assets/WinX64
+
+    - name: Download the Windows x86 artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: MoonChildFE-WinX86
+        path: assets/WinX86
+
+    - name: Download the Linux x64 artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: MoonChildFE-LinuxX64
+        path: assets/LinuxX64
+
+    - name: Packing things up
+      run: |
+        set -eux
+        mkdir -p dist
+        (cd assets/WinX64 && zip -r "$GITHUB_WORKSPACE/dist/MoonChildFE-WinX64.zip" .)
+        (cd assets/WinX86 && zip -r "$GITHUB_WORKSPACE/dist/MoonChildFE-WinX86.zip" .)
+        (cd assets/LinuxX64 && tar -czf "$GITHUB_WORKSPACE/dist/MoonChildFE-LinuxX64.tar.gz" .)
+
+    - name: Create the GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ github.ref_name }}
+        generate_release_notes: true
+        files: dist/*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  pages:
+    name: Publish to GitHub Pages
+    needs: build
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+    - name: Download the Web artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: MoonChildFE-Web
+        path: pages
+
+    - name: Prepare the site
+      run: |
+        set -eux
+        cp pages/MoonChildFE.html pages/index.html
+        touch pages/.nojekyll
+
+    - name: Configure GitHub Pages
+      uses: actions/configure-pages@v5
+
+    - name: Upload the Pages artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: pages
+
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4

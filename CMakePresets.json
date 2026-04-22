@@ -1,0 +1,144 @@
+{
+  "version": 4,
+  "configurePresets": [
+    {
+      "name": "winx64-debug",
+      "generator": "Ninja Multi-Config",
+      "toolchainFile": "${sourceDir}/CMake/Toolchains/Windows.cmake",
+      "binaryDir": "${sourceDir}/CMakeOut/WinX64/Debug",
+      "cacheVariables": {
+        "MOONCHILD_OUTPUT_PLATFORM": "WinX64",
+        "MOONCHILD_TARGET_ARCH": "WinX64"
+      }
+    },
+    {
+      "name": "winx64-release",
+      "inherits": ["winx64-debug"],
+      "binaryDir": "${sourceDir}/CMakeOut/WinX64/Release",
+      "cacheVariables": {}
+    },
+    {
+      "name": "winx86-debug",
+      "generator": "Ninja Multi-Config",
+      "toolchainFile": "${sourceDir}/CMake/Toolchains/Windows.cmake",
+      "binaryDir": "${sourceDir}/CMakeOut/WinX86/Debug",
+      "cacheVariables": {
+        "MOONCHILD_OUTPUT_PLATFORM": "WinX86",
+        "MOONCHILD_TARGET_ARCH": "WinX86"
+      }
+    },
+    {
+      "name": "winx86-release",
+      "inherits": ["winx86-debug"],
+      "binaryDir": "${sourceDir}/CMakeOut/WinX86/Release",
+      "cacheVariables": {}
+    },
+    {
+      "name": "linuxx64-debug",
+      "generator": "Ninja Multi-Config",
+      "toolchainFile": "${sourceDir}/CMake/Toolchains/Linux.cmake",
+      "binaryDir": "${sourceDir}/CMakeOut/LinuxX64/Debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "MOONCHILD_OUTPUT_PLATFORM": "LinuxX64",
+        "MOONCHILD_TARGET_ARCH": "LinuxX64"
+      }
+    },
+    {
+      "name": "linuxx64-release",
+      "inherits": ["linuxx64-debug"],
+      "binaryDir": "${sourceDir}/CMakeOut/LinuxX64/Release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "linuxarm64-debug",
+      "generator": "Ninja Multi-Config",
+      "toolchainFile": "${sourceDir}/CMake/Toolchains/Linux.cmake",
+      "binaryDir": "${sourceDir}/CMakeOut/LinuxArm64/Debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "MOONCHILD_OUTPUT_PLATFORM": "LinuxArm64",
+        "MOONCHILD_TARGET_ARCH": "LinuxArm64"
+      }
+    },
+    {
+      "name": "linuxarm64-release",
+      "inherits": ["linuxarm64-debug"],
+      "binaryDir": "${sourceDir}/CMakeOut/LinuxArm64/Release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "wasm-debug",
+      "generator": "Ninja",
+      "toolchainFile": "${sourceDir}/CMake/Toolchains/Emscripten.cmake",
+      "binaryDir": "${sourceDir}/CMakeOut/Web/Debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "MOONCHILD_OUTPUT_PLATFORM": "Web",
+        "MOONCHILD_TARGET_ARCH": "Web"
+      }
+    },
+    {
+      "name": "wasm-release",
+      "inherits": ["wasm-debug"],
+      "binaryDir": "${sourceDir}/CMakeOut/Web/Release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "build-winx64-debug",
+      "configurePreset": "winx64-debug",
+      "configuration": "Debug"
+    },
+    {
+      "name": "build-winx64-release",
+      "configurePreset": "winx64-release",
+      "configuration": "Release"
+    },
+    {
+      "name": "build-winx86-debug",
+      "configurePreset": "winx86-debug",
+      "configuration": "Debug"
+    },
+    {
+      "name": "build-winx86-release",
+      "configurePreset": "winx86-release",
+      "configuration": "Release"
+    },
+    {
+      "name": "build-linuxx64-debug",
+      "configurePreset": "linuxx64-debug",
+      "configuration": "Debug"
+    },
+    {
+      "name": "build-linuxx64-release",
+      "configurePreset": "linuxx64-release",
+      "configuration": "Release"
+    },
+    {
+      "name": "build-linuxarm64-debug",
+      "configurePreset": "linuxarm64-debug",
+      "configuration": "Debug"
+    },
+    {
+      "name": "build-linuxarm64-release",
+      "configurePreset": "linuxarm64-release",
+      "configuration": "Release"
+    },
+    {
+      "name": "build-wasm-debug",
+      "configurePreset": "wasm-debug"
+    },
+    {
+      "name": "build-wasm-release",
+      "configurePreset": "wasm-release"
+    }
+  ]
+}

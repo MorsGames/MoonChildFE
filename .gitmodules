@@ -1,0 +1,12 @@
+[submodule "Libraries/SDL3"]
+	path = Libraries/SDL3
+	url = https://github.com/libsdl-org/SDL.git
+[submodule "Libraries/zlib"]
+	path = Libraries/zlib
+	url = https://github.com/madler/zlib.git
+[submodule "Libraries/SDL_GameControllerDB"]
+	path = Libraries/SDL_GameControllerDB
+	url = https://github.com/mdqinc/SDL_GameControllerDB.git
+[submodule "Libraries/pl_mpeg"]
+	path = Libraries/pl_mpeg
+	url = https://github.com/phoboslab/pl_mpeg.git
