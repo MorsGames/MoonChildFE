@@ -343,6 +343,8 @@ HEARTBEAT_FN movieleavefunc;
 HEARTBEAT_FN luxaleavefunc;
 
 UINT16    keyquery;
+static PREFS keyqueryprefs;
+static bool keyqueryprefsvalid = false;
 
 UINT16    seqcnt;         // used for timing the length that screen appear
 
@@ -6981,6 +6983,29 @@ static void sync_menu_input_context(void)
   InputBridge::SetContext(keyquery == 1 ? InputBridge::INPUT_CONTEXT_REMAP : InputBridge::INPUT_CONTEXT_MENU);
 }
 
+static void begin_key_remap(void)
+{
+  keyqueryprefs = *prefs;
+  keyqueryprefsvalid = true;
+}
+
+static void cancel_key_remap(void)
+{
+  if (keyqueryprefsvalid)
+    {
+      *prefs = keyqueryprefs;
+      keyqueryprefsvalid = false;
+    }
+  keyquery = 0;
+  lastkey = 0;
+}
+
+static void commit_key_remap(void)
+{
+  keyqueryprefsvalid = false;
+  keyquery = 0;
+}
+
 HEARTBEAT_FN MC_menu(void)
 {
   static int menutimeout = 1000;      // 20 seconds
@@ -7015,7 +7040,7 @@ HEARTBEAT_FN MC_menu(void)
 	}
     if (menuleavefunc)
 	{
-      keyquery = 0;
+      cancel_key_remap();
 	  menutimeout = 1000;
 	  sync_menu_input_context();
 	  return (HEARTBEAT_FN) menuleavefunc;
@@ -7204,6 +7229,7 @@ void menuf12(void)
 
 void menuf121(void)
 {
+  begin_key_remap();
   keyquery = 1;
   lastkey = 0;
   menupoint = menu121;
@@ -7267,7 +7293,7 @@ void menuf12111111(void)
   if (prefs->rightkey == prefs->downkey) return;
   if (prefs->rightkey == prefs->leftkey) return;
   if (prefs->rightkey == prefs->shootkey) return;
-  keyquery = 0;
+  commit_key_remap();
   menupoint = menu12;
   menuleavefunc = (HEARTBEAT_FN) MC_buildmenu;
 
