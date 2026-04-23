@@ -8,6 +8,210 @@
 #include <boss.hpp>
 #include <sound.hpp>
 
+// 7x9
+static const char* smallfont[] =
+{
+  "  ...  "
+  " .   . "
+  " .   . "
+  " .   . "
+  " .   . "
+  " .   . "
+  " .   . "
+  " .   . "
+  "  ...  "
+  ,
+  "   .   "
+  "  ..   "
+  " . .   "
+  "   .   "
+  "   .   "
+  "   .   "
+  "   .   "
+  "   .   "
+  " ..... "
+  ,
+  "  ...  "
+  " .   . "
+  " .   . "
+  "     . "
+  "    .  "
+  "   .   "
+  "  .    "
+  " .     "
+  " ..... "
+  ,
+  "  ...  "
+  " .   . "
+  " .   . "
+  "     . "
+  "  ...  "
+  "     . "
+  " .   . "
+  " .   . "
+  "  ...  "
+  ,
+  "    . "
+  "    .. "
+  "   . . "
+  "  .  . "
+  " .   . "
+  " ..... "
+  "     . "
+  "     . "
+  "     . "
+  ,
+  " ..... "
+  " .     "
+  " .     "
+  " .     "
+  " ....  "
+  "     . "
+  "     . "
+  " .   . "
+  "  ...  "
+  ,
+  "  ...  "
+  " .     "
+  " .     "
+  " .     "
+  " ....  "
+  " .   . "
+  " .   . "
+  " .   . "
+  "  ...  "
+  ,
+  " ..... "
+  "     . "
+  "     . "
+  "    .  "
+  "    .  "
+  "    .  "
+  "   .   "
+  "   .   "
+  "   .   "
+  ,
+  "  ...  "
+  " .   . "
+  " .   . "
+  " .   . "
+  "  ...  "
+  " .   . "
+  " .   . "
+  " .   . "
+  "  ...  "
+  ,
+  "  ...  "
+  " .   . "
+  " .   . "
+  " .   . "
+  "  .... "
+  "     . "
+  "     . "
+  "     . "
+  "  ...  "
+  ,
+  "       "
+  "       "
+  "       "
+  "  .    "
+  "       "
+  "       "
+  "  .    "
+  "       "
+  "       "
+  ,
+  "       "
+  "       "
+  "       "
+  "       "
+  "       "
+  "       "
+  "       "
+  "       "
+  "  .    "
+};
+static const char* smallfontmap = "0123456789:.";
+
+static void drawsmallglyph(Cblitbuf& blitbuf, char glyph, BYTE color, UINT16 x, UINT16 y)
+{
+  UINT16 i;
+  const char* glyphptr = nullptr;
+  UINT16 xcnt;
+  UINT16 ycnt;
+
+  for (i=0;i<strlen(smallfontmap);i++)
+  {
+    if (smallfontmap[i] == glyph)
+    {
+      glyphptr = smallfont[i];
+      break;
+    }
+  }
+  if (glyphptr == nullptr) return;
+
+  xcnt = 0;
+  ycnt = 0;
+
+  BYTE* buf = blitbuf.lock_buffer();
+  UINT16 pitch = blitbuf.get_pitch();
+  while (*glyphptr)
+  {
+    if (*glyphptr == ' ')
+    {
+      xcnt++;
+    }
+    else
+    {
+      buf[((y+ycnt)*pitch) + ((x+xcnt)*1) + 0] = color;
+
+      xcnt++;
+    }
+
+    if (xcnt == 7)
+    {
+      xcnt = 0;
+      ycnt++;
+    }
+
+    glyphptr++;
+  }
+  blitbuf.unlock_buffer();
+}
+
+static void drawsmallfontstring(Cblitbuf& blitbuf, const char* str, BYTE color, UINT16 x, UINT16 y)
+{
+  UINT16 xcnt = x;
+
+  for (int i = 0; i < strlen(str); i++)
+  {
+    drawsmallglyph(blitbuf, str[i], color, xcnt, y);
+    xcnt += 8;
+  }
+}
+
+static void drawshadowsmallfontstring(Cblitbuf& blitbuf, const char* str, BYTE color, UINT16 x, UINT16 y)
+{
+  drawsmallfontstring(blitbuf, str, 0, x+1, y);
+  drawsmallfontstring(blitbuf, str, 0, x, y+1);
+  drawsmallfontstring(blitbuf, str, 0, x+1, y+1);
+  drawsmallfontstring(blitbuf, str, color, x, y);
+}
+
+static void drawgametime(UINT32 ticks, Cblitbuf& blitbuf, BYTE color, UINT16 x, UINT16 y)
+{
+  UINT32 centiseconds = ticks * 100 / 60;
+  UINT32 seconds = ticks / 60;
+  UINT32 minutes = seconds / 60;
+  UINT32 hours = seconds / 3600;
+  seconds = seconds % 60;
+  minutes = minutes % 60;
+  centiseconds = centiseconds % 100;
+  char timebuf[32];
+  snprintf(timebuf, sizeof(timebuf), "%02u:%02u:%02u.%02u", hours, minutes, seconds, centiseconds);
+
+  drawshadowsmallfontstring(blitbuf, timebuf, color, x, y);
+}
 
 void score_display(VIEWPORT *player)
 {
@@ -278,6 +482,13 @@ void score_display(VIEWPORT *player)
   frame = anim_forceframe (orgscore, cyfer);
   frame->draw(*player->loadedmap->blitbuf,70 + (12*40) + ((sinus512[xcnt]*10)>>10) + scoreshift, 414 + ((sinus512[ycnt]*10)>>10) );
 #endif
+
+  if (speedrun_state.running)
+  {
+    drawgametime(speedrun_state.gametime, *player->loadedmap->blitbuf, 0x10, 8, 8);
+
+    drawgametime(speedrun_state.leveltime[world*4+level], *player->loadedmap->blitbuf, 0x10, 8, 20);
+  }
 }
 
 
