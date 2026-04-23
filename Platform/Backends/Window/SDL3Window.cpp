@@ -14,6 +14,12 @@ SDL3Window::~SDL3Window()
 
 bool SDL3Window::Create(const char* title, int width, int height)
 {
+    if (!SDL_SetAppMetadata(title, NULL, NULL))
+    {
+        printf("SDL set app metadata failed! %s\n", SDL_GetError());
+        return false;
+    }
+
     // Only video + events are needed here
     // The rest are initialized separately in their own places
     if (!SDL_InitSubSystem(SDL_INIT_VIDEO | SDL_INIT_EVENTS))
