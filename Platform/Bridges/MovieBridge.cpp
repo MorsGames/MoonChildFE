@@ -14,10 +14,6 @@
 #define PL_MPEG_IMPLEMENTATION
 #include "pl_mpeg.h"
 
-// This file is slightly misleading
-// Normally these bridges are supposed to be what the name implies, a bridge between the game and the backend
-// But here, all the functionality of the backend is in the bridge. If we ever add movie playback as a separate backend type, this would be a lot cleaner
-
 static plm_t* PlmInstance = nullptr;
 static IAudio* MovieAudioBackend = nullptr;
 

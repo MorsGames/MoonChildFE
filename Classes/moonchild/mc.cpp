@@ -5784,9 +5784,10 @@ void check_keys(void)
 #endif
     }
 
-  if (keytab[VK_ESCAPE] == 1)
+  if (keytab[VK_ESCAPE] == 1 || keytab[CB_START] == 1)
     {
       keytab[VK_ESCAPE] = 0;
+      keytab[CB_START] = 0;
 
       if (hoi->frame)   // Hoi wappert niet op dit moment?
 	  {
@@ -5868,8 +5869,6 @@ void check_keys(void)
 void handleinput1shot(void)
 {
   const bool isThisMenu = ingameflg != 0 && puzzleactiveflg == 0 && mcsmk == 0;
-  InputBridge::SetContext(isThisMenu ? InputBridge::INPUT_CONTEXT_GAME : InputBridge::INPUT_CONTEXT_MENU);
-  InputBridge::SetBindings(prefs->upkey, prefs->downkey, prefs->leftkey, prefs->rightkey, prefs->jumpkey, prefs->shootkey);
 
   leftkey  = 0;
   rightkey = 0;
@@ -5882,65 +5881,85 @@ void handleinput1shot(void)
 
   if (!isThisMenu)     // are we in the titlescreen right now??
   {
-    if (keytab[VK_LEFT])
+    if (keytab[VK_LEFT] || keytab[CB_LEFT])
     {
       keytab[VK_LEFT] = 0;
+      keytab[CB_LEFT] = 0;
       leftkey  = 1;
     }
-    if (keytab[VK_RIGHT])
+    if (keytab[VK_RIGHT] || keytab[CB_RIGHT])
     {
       keytab[VK_RIGHT] = 0;
+      keytab[CB_RIGHT] = 0;
       rightkey = 1;
     }
-    if (keytab[VK_UP])
+    if (keytab[VK_UP] || keytab[CB_UP])
     {
       keytab[VK_UP] = 0;
+      keytab[CB_UP] = 0;
       upkey    = 1;
     }
-    if (keytab[VK_DOWN])
+    if (keytab[VK_DOWN] || keytab[CB_DOWN])
     {
       keytab[VK_DOWN] = 0;
+      keytab[CB_DOWN] = 0;
       downkey  = 1;
     }
-    if (keytab[' '] || keytab[VK_RETURN])
+    if (keytab[' '] || keytab[VK_RETURN] || keytab[CB_JUMP] || keytab[CB_ACTION] || keytab[CB_START])
     {
       keytab[' '] = 0;
       keytab[VK_RETURN] = 0;
+      keytab[CB_JUMP] = 0;
+      keytab[CB_ACTION] = 0;
+      keytab[CB_START] = 0;
       shootkey = 1;
     }
   }
   else
   {
-    if (keytab[prefs->leftkey])
+    const bool keyboardLeft = keytab[prefs->leftkey] != 0;
+    const bool keyboardRight = keytab[prefs->rightkey] != 0;
+    const bool keyboardUp = keytab[prefs->upkey] != 0;
+    const bool keyboardDown= keytab[prefs->downkey] != 0;
+    const bool keyboardJump = keytab[prefs->jumpkey] != 0;
+    const bool keyboardShoot = keytab[prefs->shootkey] != 0;
+
+    if (keyboardLeft || keytab[CB_LEFT])
     {
       keytab[prefs->leftkey] = 0;
+      keytab[CB_LEFT] = 0;
       leftkey  = 1;
     }
-    if (keytab[prefs->rightkey])
+    if (keyboardRight || keytab[CB_RIGHT])
     {
       keytab[prefs->rightkey] = 0;
+      keytab[CB_RIGHT] = 0;
       rightkey = 1;
     }
-    if (keytab[prefs->upkey])
+    if (keyboardUp || keytab[CB_UP])
     {
       keytab[prefs->upkey] = 0;
+      keytab[CB_UP] = 0;
       upkey    = 1;
-      if (prefs->jumpkey == prefs->upkey)
+      if (keyboardUp && prefs->jumpkey == prefs->upkey)
         jumpkey  = 1;
     }
-    if (keytab[prefs->downkey])
+    if (keyboardDown|| keytab[CB_DOWN])
     {
       keytab[prefs->downkey] = 0;
+      keytab[CB_DOWN] = 0;
       downkey  = 1;
     }
-    if (prefs->jumpkey != prefs->upkey && keytab[prefs->jumpkey])
+    if ((prefs->jumpkey != prefs->upkey && keyboardJump) || keytab[CB_JUMP])
     {
       keytab[prefs->jumpkey] = 0;
+      keytab[CB_JUMP] = 0;
       jumpkey  = 1;
     }
-    if (keytab[prefs->shootkey])
+    if (keyboardShoot || keytab[CB_ACTION])
     {
       keytab[prefs->shootkey] = 0;
+      keytab[CB_ACTION] = 0;
       shootkey = 1;
     }
   }
@@ -5954,8 +5973,6 @@ void handleinput1shot(void)
 void handleinputloop(void)
 {
   const bool isThisMenu = ingameflg != 0 && puzzleactiveflg == 0 && mcsmk == 0;
-  InputBridge::SetContext(isThisMenu ? InputBridge::INPUT_CONTEXT_GAME : InputBridge::INPUT_CONTEXT_MENU);
-  InputBridge::SetBindings(prefs->upkey, prefs->downkey, prefs->leftkey, prefs->rightkey, prefs->jumpkey, prefs->shootkey);
 
   leftkey  = 0;
   rightkey = 0;
@@ -5966,50 +5983,50 @@ void handleinputloop(void)
 
   if (!isThisMenu)
     {
-      if (keytab[VK_LEFT])
+      if (keytab[VK_LEFT] || keytab[CB_LEFT])
         {
           leftkey  = 1;
         }
-      if (keytab[VK_RIGHT])
+      if (keytab[VK_RIGHT] || keytab[CB_RIGHT])
         {
           rightkey = 1;
         }
-      if (keytab[VK_UP])
+      if (keytab[VK_UP] || keytab[CB_UP])
         {
           upkey    = 1;
         }
-      if (keytab[VK_DOWN])
+      if (keytab[VK_DOWN] || keytab[CB_DOWN])
         {
           downkey  = 1;
         }
-      if (keytab[' '] || keytab[VK_RETURN])
+      if (keytab[' '] || keytab[VK_RETURN] || keytab[CB_JUMP] || keytab[CB_ACTION] || keytab[CB_START])
         {
           shootkey = 1;
         }
     }
   else
     {
-      if (keytab[prefs->leftkey])
+      if (keytab[prefs->leftkey] || keytab[CB_LEFT])
         {
           leftkey  = 1;
         }
-      if (keytab[prefs->rightkey])
+      if (keytab[prefs->rightkey] || keytab[CB_RIGHT])
         {
           rightkey = 1;
         }
-      if (keytab[prefs->upkey])
+      if (keytab[prefs->upkey] || keytab[CB_UP])
         {
           upkey    = 1;
         }
-      if (keytab[prefs->downkey])
+      if (keytab[prefs->downkey] || keytab[CB_DOWN])
         {
           downkey  = 1;
         }
-      if (keytab[prefs->jumpkey])
+      if (keytab[prefs->jumpkey] || keytab[CB_JUMP])
         {
           jumpkey  = 1;
         }
-      if (keytab[prefs->shootkey])
+      if (keytab[prefs->shootkey] || keytab[CB_ACTION])
         {
           shootkey = 1;
         }
@@ -6017,6 +6034,18 @@ void handleinputloop(void)
 
   query_joystickloop(0);
 
+  if (!isThisMenu)
+    {
+      keytab[' '] = 0;
+      keytab[VK_RETURN] = 0;
+      keytab[CB_JUMP] = 0;
+      keytab[CB_ACTION] = 0;
+      keytab[CB_START] = 0;
+    }
+  else
+    {
+      keytab[CB_ACTION] = 0;
+    }
   keytab[prefs->shootkey] = 0;
 }
 
@@ -6978,9 +7007,9 @@ HEARTBEAT_FN MC_options(void)
   return (HEARTBEAT_FN) MC_options;
 }
 
-static void sync_menu_input_context(void)
+static bool is_controller_key(UINT16 key)
 {
-  InputBridge::SetContext(keyquery == 1 ? InputBridge::INPUT_CONTEXT_REMAP : InputBridge::INPUT_CONTEXT_MENU);
+  return key >= CB_LEFT && key <= CB_BACK;
 }
 
 static void begin_key_remap(void)
@@ -7020,9 +7049,10 @@ HEARTBEAT_FN MC_menu(void)
 
   if (musicstoppedflg) start_cd();   // did the music stop when we where IN the menu??
 
-  if (keytab[VK_ESCAPE])
+  if (keytab[VK_ESCAPE] || keytab[CB_BACK])
   {
 	keytab[VK_ESCAPE] = 0;
+    keytab[CB_BACK] = 0;
     if (menupoint == menu1)
 	{
       titlepic->draw_nokey(*refreshpic, 0, 0, 0, 0, 640, 480);
@@ -7042,20 +7072,18 @@ HEARTBEAT_FN MC_menu(void)
 	{
       cancel_key_remap();
 	  menutimeout = 1000;
-	  sync_menu_input_context();
 	  return (HEARTBEAT_FN) menuleavefunc;
 	}
   }
 
   if (keyquery == 1)    // ask keyboardkey
   {
-      if(lastkey)
+      if(lastkey && !is_controller_key(lastkey))
       {
         menupoint[menuitem].menu_fn();
         menutimeout = 1000;
         if (menuleavefunc)
           {
-            sync_menu_input_context();
             return (HEARTBEAT_FN) menuleavefunc;
           }
       }
@@ -7063,7 +7091,6 @@ HEARTBEAT_FN MC_menu(void)
   titlepic->draw_nokey(*vidblitbuf, 0, menupoint[menuitem].linenr*32-16, 0, menupoint[menuitem].linenr*32-16, 640, menupoint[menuitem].linenr*32+32+16);
   menupuntblit();
 
-  sync_menu_input_context();
   return (HEARTBEAT_FN) MC_menu;
 
   }
@@ -7125,7 +7152,6 @@ HEARTBEAT_FN MC_menu(void)
 			menutimeout = 1000;
 			if (menuleavefunc)
 			  {
-			    sync_menu_input_context();
 			    return (HEARTBEAT_FN) menuleavefunc;
 			  }
 		}
@@ -7138,7 +7164,6 @@ HEARTBEAT_FN MC_menu(void)
         menutimeout = 1000;
         if (menuleavefunc)
           {
-            sync_menu_input_context();
             return (HEARTBEAT_FN) menuleavefunc;
           }
     }
@@ -7152,7 +7177,6 @@ HEARTBEAT_FN MC_menu(void)
     menuleavefunc = (HEARTBEAT_FN) MC_leavemenu;
     if (menuleavefunc)
       {
-        sync_menu_input_context();
         return (HEARTBEAT_FN) menuleavefunc;
       }
   }
@@ -7160,7 +7184,6 @@ HEARTBEAT_FN MC_menu(void)
   titlepic->draw_nokey(*vidblitbuf, 0, menupoint[menuitem].linenr*32-16, 0, menupoint[menuitem].linenr*32-16, 640, menupoint[menuitem].linenr*32+32+16);
   menupuntblit();
 
-  sync_menu_input_context();
   return (HEARTBEAT_FN) MC_menu;
 }
 
@@ -7640,7 +7663,6 @@ HEARTBEAT_FN MC_buildmenu(void)
   menuitem = start_afterbuilditem;
   start_afterbuilditem = 0;
 
-  sync_menu_input_context();
   return (HEARTBEAT_FN) MC_menu;
 };
 
@@ -8676,9 +8698,10 @@ HEARTBEAT_FN MC_puzzleselect(void)
     }
 
 
-  if (keytab[VK_ESCAPE])
+  if (keytab[VK_ESCAPE] || keytab[CB_BACK])
   {
       keytab[VK_ESCAPE] = 0;
+      keytab[CB_BACK] = 0;
       return (HEARTBEAT_FN) MC_abortpuzzle;
   }  
   if ( shootkey ) 
@@ -8729,9 +8752,10 @@ HEARTBEAT_FN MC_puzzleshow(void)
       return (HEARTBEAT_FN) MC_endpuzzle;
     }
 
-  if (keytab[VK_ESCAPE])
+  if (keytab[VK_ESCAPE] || keytab[CB_BACK])
   {
       keytab[VK_ESCAPE] = 0;
+      keytab[CB_BACK] = 0;
       return (HEARTBEAT_FN) MC_abortpuzzle;
   }  
 

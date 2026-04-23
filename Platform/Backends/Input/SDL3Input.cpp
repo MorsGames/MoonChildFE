@@ -1,23 +1,8 @@
 #include "SDL3Input.h"
 
-#include "InputBridge.h"
-
 #include <cstdio>
-#include <cstring>
 
 static constexpr int AXIS_THRESHOLD = 16000;
-
-static constexpr int VK_BACK   = 0x08;
-static constexpr int VK_TAB    = 0x09;
-static constexpr int VK_RETURN = 0x0D;
-static constexpr int VK_SHIFT  = 0x10;
-static constexpr int VK_CTRL   = 0x11;
-static constexpr int VK_ALT    = 0x12;
-static constexpr int VK_ESCAPE = 0x1B;
-static constexpr int VK_LEFT   = 37;
-static constexpr int VK_UP     = 38;
-static constexpr int VK_RIGHT  = 39;
-static constexpr int VK_DOWN   = 40;
 
 SDL3Input::SDL3Input() = default;
 
@@ -102,114 +87,54 @@ int SDL3Input::TranslateKey(int sdlKey)
 
 int SDL3Input::TranslateGamepadButton(int button)
 {
-    if (InputBridge::Context == InputBridge::INPUT_CONTEXT_GAME)
-    {
-        switch (button)
-        {
-            case SDL_GAMEPAD_BUTTON_DPAD_LEFT:  return InputBridge::BindLeft;
-            case SDL_GAMEPAD_BUTTON_DPAD_RIGHT: return InputBridge::BindRight;
-            case SDL_GAMEPAD_BUTTON_DPAD_DOWN:  return InputBridge::BindDown;
-            case SDL_GAMEPAD_BUTTON_DPAD_UP:    return InputBridge::BindUp;
-            case SDL_GAMEPAD_BUTTON_SOUTH:      return InputBridge::BindJump;
-            case SDL_GAMEPAD_BUTTON_WEST:       return InputBridge::BindAction;
-            case SDL_GAMEPAD_BUTTON_START:      return VK_ESCAPE;
-            default:                            return 0;
-        }
-    }
-
     switch (button)
     {
-        case SDL_GAMEPAD_BUTTON_DPAD_LEFT:  return VK_LEFT;
-        case SDL_GAMEPAD_BUTTON_DPAD_RIGHT: return VK_RIGHT;
-        case SDL_GAMEPAD_BUTTON_DPAD_UP:    return VK_UP;
-        case SDL_GAMEPAD_BUTTON_DPAD_DOWN:  return VK_DOWN;
-        case SDL_GAMEPAD_BUTTON_SOUTH:      return ' ';
-        case SDL_GAMEPAD_BUTTON_EAST:       return VK_ESCAPE;
-        case SDL_GAMEPAD_BUTTON_START:      return VK_RETURN;
-        case SDL_GAMEPAD_BUTTON_BACK:       return VK_ESCAPE;
-        default:                            return 0;
+        case SDL_GAMEPAD_BUTTON_DPAD_LEFT:  return CB_LEFT;
+        case SDL_GAMEPAD_BUTTON_DPAD_RIGHT: return CB_RIGHT;
+        case SDL_GAMEPAD_BUTTON_DPAD_UP:    return CB_UP;
+        case SDL_GAMEPAD_BUTTON_DPAD_DOWN:  return CB_DOWN;
+        case SDL_GAMEPAD_BUTTON_SOUTH:      return CB_JUMP;
+        case SDL_GAMEPAD_BUTTON_WEST:       return CB_ACTION;
+        case SDL_GAMEPAD_BUTTON_EAST:       return CB_BACK;
+        case SDL_GAMEPAD_BUTTON_START:      return CB_START;
+        case SDL_GAMEPAD_BUTTON_BACK:       return CB_BACK;
+        default:                            return INPUT_CODE_NONE;
     }
 }
 
-void SDL3Input::TranslateGamepadAxis(int axis, int& outNegativeKey, int& outPositiveKey)
+void SDL3Input::TranslateGamepadAxis(int axis, int& outNegativeCode, int& outPositiveCode)
 {
-    outNegativeKey = 0;
-    outPositiveKey = 0;
-
-    if (InputBridge::Context == InputBridge::INPUT_CONTEXT_GAME)
-    {
-        switch (axis)
-        {
-            case SDL_GAMEPAD_AXIS_LEFTX:
-                outNegativeKey = InputBridge::BindLeft;
-                outPositiveKey = InputBridge::BindRight;
-                break;
-            case SDL_GAMEPAD_AXIS_LEFTY:
-                outNegativeKey = InputBridge::BindUp;
-                outPositiveKey = InputBridge::BindDown;
-                break;
-            default:
-                break;
-        }
-        return;
-    }
+    outNegativeCode = INPUT_CODE_NONE;
+    outPositiveCode = INPUT_CODE_NONE;
 
     switch (axis)
     {
         case SDL_GAMEPAD_AXIS_LEFTX:
-            outNegativeKey = VK_LEFT;
-            outPositiveKey = VK_RIGHT;
+            outNegativeCode = CB_LEFT;
+            outPositiveCode = CB_RIGHT;
             break;
         case SDL_GAMEPAD_AXIS_LEFTY:
-            outNegativeKey = VK_UP;
-            outPositiveKey = VK_DOWN;
+            outNegativeCode = CB_UP;
+            outPositiveCode = CB_DOWN;
             break;
         default:
             break;
     }
 }
 
-void SDL3Input::SetSource(uint32_t sourceId, int gameKeyCode, bool isDown)
+void SDL3Input::SetSource(uint32_t sourceId, int code, bool isDown)
 {
-    if (gameKeyCode <= 0 || gameKeyCode >= 256)
+    if (isDown && code == INPUT_CODE_NONE)
     {
         return;
     }
 
-    auto it = ActiveSources.find(sourceId);
-    const bool wasDown = it != ActiveSources.end();
-
-    if (isDown && !wasDown)
-    {
-        ActiveSources.emplace(sourceId, gameKeyCode);
-        if (KeyRefCount[gameKeyCode]++ == 0)
-        {
-            Queue.push_back({gameKeyCode, true});
-        }
-    }
-    else if (!isDown && wasDown)
-    {
-        const int previousCode = it->second;
-        ActiveSources.erase(it);
-        if (--KeyRefCount[previousCode] == 0)
-        {
-            Queue.push_back({previousCode, false});
-        }
-    }
+    Queue.push_back({sourceId, code, isDown});
 }
 
 void SDL3Input::ClearAllSources()
 {
-    for (const auto& entry : ActiveSources)
-    {
-        const int code = entry.second;
-        if (--KeyRefCount[code] == 0)
-        {
-            Queue.push_back({code, false});
-        }
-    }
-    ActiveSources.clear();
-    std::memset(KeyRefCount, 0, sizeof(KeyRefCount));
+    Queue.push_back({0, 0, false});
 }
 
 void SDL3Input::OnKeyEvent(int nativeKeyCode, bool isDown, bool isRepeat)
@@ -223,7 +148,7 @@ void SDL3Input::OnKeyEvent(int nativeKeyCode, bool isDown, bool isRepeat)
     {
         return;
     }
-    const uint32_t sourceId = SOURCE_KEY | static_cast<uint32_t>(nativeKeyCode & 0x00FFFFFF);
+    const uint32_t sourceId = INPUT_SOURCE_KEY | static_cast<uint32_t>(nativeKeyCode & INPUT_SOURCE_CODE_MASK);
     SetSource(sourceId, code, isDown);
 }
 
@@ -252,10 +177,6 @@ void SDL3Input::OnGamepadDisconnected(int instanceId)
 
 void SDL3Input::OnGamepadButton(int instanceId, int button, bool isDown)
 {
-    if (InputBridge::Context == InputBridge::INPUT_CONTEXT_REMAP)
-    {
-        return;
-    }
     if (Gamepad == nullptr || GamepadId != static_cast<SDL_JoystickID>(instanceId))
     {
         return;
@@ -265,26 +186,26 @@ void SDL3Input::OnGamepadButton(int instanceId, int button, bool isDown)
     {
         return;
     }
-    const uint32_t sourceId = SOURCE_GAMEPAD_BUTTON | static_cast<uint32_t>(button & 0x00FFFFFF);
+    const uint32_t sourceId = INPUT_SOURCE_GAMEPAD_BUTTON | static_cast<uint32_t>(button & INPUT_SOURCE_CODE_MASK);
     SetSource(sourceId, code, isDown);
 }
 
 void SDL3Input::OnGamepadAxis(int instanceId, int axis, int value)
 {
-    if (InputBridge::Context == InputBridge::INPUT_CONTEXT_REMAP)
-    {
-        return;
-    }
     if (Gamepad == nullptr || GamepadId != static_cast<SDL_JoystickID>(instanceId))
     {
         return;
     }
-    int negativeCode = 0;
-    int positiveCode = 0;
+    int negativeCode = INPUT_CODE_NONE;
+    int positiveCode = INPUT_CODE_NONE;
     TranslateGamepadAxis(axis, negativeCode, positiveCode);
+    if (negativeCode == INPUT_CODE_NONE && positiveCode == INPUT_CODE_NONE)
+    {
+        return;
+    }
 
-    const uint32_t negSourceId = SOURCE_GAMEPAD_AXIS_NEG | static_cast<uint32_t>(axis & 0x00FFFFFF);
-    const uint32_t posSourceId = SOURCE_GAMEPAD_AXIS_POS | static_cast<uint32_t>(axis & 0x00FFFFFF);
+    const uint32_t negSourceId = INPUT_SOURCE_GAMEPAD_AXIS_NEG | static_cast<uint32_t>(axis & INPUT_SOURCE_CODE_MASK);
+    const uint32_t posSourceId = INPUT_SOURCE_GAMEPAD_AXIS_POS | static_cast<uint32_t>(axis & INPUT_SOURCE_CODE_MASK);
 
     SetSource(negSourceId, negativeCode, value <= -AXIS_THRESHOLD);
     SetSource(posSourceId, positiveCode, value >=  AXIS_THRESHOLD);

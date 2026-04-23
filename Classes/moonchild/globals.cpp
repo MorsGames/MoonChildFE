@@ -6,6 +6,8 @@
 #include <trigger.hpp>
 #include <lvlinits.hpp>
 
+#include <IInput.h>
+
 
 /* Various variables */
  

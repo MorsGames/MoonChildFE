@@ -81,7 +81,7 @@ bool Host::Initialize()
 
     AudioBridge::Attach(Backends.Audio.get());
     DisplayBridge::Attach(Backends.Window.get(), Backends.Renderer.get());
-    InputBridge::Attach();
+    InputBridge::Attach(Backends.Input.get());
     MovieBridge::Attach(Backends.Audio.get(),
         PixelBuffer.get(), GAME_FRAMEBUFFER_WIDTH, GAME_FRAMEBUFFER_HEIGHT);
 
@@ -139,15 +139,6 @@ void Host::RunFrame()
         Running = false;
     }
 
-    InputEvent inputEvent;
-    while (Backends.Input->PollNext(inputEvent))
-    {
-        if (inputEvent.GameKeyCode != 0)
-        {
-            framework_EventHandle(inputEvent.IsDown ? FW_KEYDOWN : FW_KEYUP, inputEvent.GameKeyCode);
-        }
-    }
-
     const auto current = std::chrono::steady_clock::now(); // cato wouldn't be proud of me
 
     const uint64_t deltaNs = static_cast<uint64_t>(
@@ -169,6 +160,15 @@ void Host::RunFrame()
     bool advancedFrame = false;
     while (Accumulator >= tickNs && Running)
     {
+        InputBridge::Tick();
+        InputEvent inputEvent;
+        while (InputBridge::PollNext(inputEvent))
+        {
+            if (inputEvent.Code != 0)
+            {
+                framework_EventHandle(inputEvent.IsDown ? FW_KEYDOWN : FW_KEYUP, inputEvent.Code);
+            }
+        }
         TickFramework(tickDuration);
         Accumulator -= tickNs;
         advancedFrame = true;
@@ -252,10 +252,7 @@ void Host::ShutdownFramework()
 
 void Host::TickFramework(double tickDuration)
 {
-    if (lmovie->videoFilename != nullptr)
-    {
-        MovieBridge::Tick(tickDuration);
-    }
+    MovieBridge::Tick(tickDuration);
 
     heartbeat = reinterpret_cast<HEARTBEAT_FN>(heartbeat());
     if (heartbeat == nullptr)

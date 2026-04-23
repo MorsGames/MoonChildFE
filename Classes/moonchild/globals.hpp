@@ -279,15 +279,3 @@ extern UINT16 world;
 extern UINT16 level;
 
 extern LEVEL_DESCR levels[5][4];
-
-#define VK_LEFT 37
-#define VK_UP 38
-#define VK_RIGHT 39
-#define VK_DOWN 40
-#define VK_ESCAPE 0x1B
-#define VK_RETURN 0x0D
-#define VK_BACK 0x08
-#define VK_TAB 0x09
-#define VK_SHIFT 0x10
-#define VK_CTRL 0x11
-#define VK_ALT 0x12
