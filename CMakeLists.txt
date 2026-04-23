@@ -25,6 +25,12 @@ option(MOONCHILD_INPUT_SDL3 "Use SDL3 input backend" ON)
 
 option(MOONCHILD_AUDIO_SDL3 "Use SDL3 audio backend" ON)
 
+# Enable Editor
+option(MOONCHILD_ENABLE_EDITOR "Enable the level editor" OFF)
+if(MOONCHILD_ENABLE_EDITOR)
+  add_compile_definitions(EDITOR=1)
+endif()
+
 # Vendoring options
 option(MOONCHILD_VENDORED_SDL3 "Use vendored SDL3 library" ON)
 option(MOONCHILD_VENDORED_ZLIB "Use vendored zlib library" ON)

@@ -41,11 +41,6 @@ int	  FirstTimeShowCredzFlg;
 #define DISCARD_UNUSED_PATS
 
 
-// if defined the editor is ready to go
-
-//#define EDITOR
-
-
 // if defined you're able to grab screenshots from movies and game!
 
 //#define GRABBER
