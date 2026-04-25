@@ -22,7 +22,7 @@ public:
 
     WindowSize GetPixelSize() const override;
 
-    SDL_Window* GetNativeWindow() const { return Window; }
+    SDL_Window* GetNativeWindow() const { return m_Window; }
 
     void DisplaySetFullscreen(bool enabled) override;
 
@@ -35,13 +35,14 @@ public:
 #endif
 
 private:
+
 #ifdef MOONCHILD_HAS_DISPLAY_OPTIONS
-    bool SwallowEnterKey = false;
+    bool m_SwallowEnterKey = false;
     bool HandleFullscreenHotkey(const SDL_Event& ev);
 #endif
 
-    SDL_Window* Window = nullptr;
+    SDL_Window* m_Window = nullptr;
 #ifdef MOONCHILD_RENDERER_GL
-    SDL_GLContext GlContext = nullptr;
+    SDL_GLContext m_GlContext = nullptr;
 #endif
 };

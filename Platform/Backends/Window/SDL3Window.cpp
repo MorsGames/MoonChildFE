@@ -12,6 +12,12 @@ SDL3Window::~SDL3Window()
     Destroy();
 }
 
+/*
+ * NOTE: Only video + events are initialized here; audio & input are initialized in
+ *       SDL3Audio & SDL3Input respectively.
+ */
+constexpr static SDL_InitFlags MY_SDL_SUBSYSTEM_FLAGS = SDL_INIT_VIDEO | SDL_INIT_EVENTS;
+
 bool SDL3Window::Create(const char* title, int width, int height)
 {
     if (!SDL_SetAppMetadata(title, NULL, NULL))
@@ -20,9 +26,7 @@ bool SDL3Window::Create(const char* title, int width, int height)
         return false;
     }
 
-    // Only video + events are needed here
-    // The rest are initialized separately in their own places
-    if (!SDL_InitSubSystem(SDL_INIT_VIDEO | SDL_INIT_EVENTS))
+    if (!SDL_InitSubSystem(MY_SDL_SUBSYSTEM_FLAGS))
     {
         printf("SDL video + init subsystem initialization failed! %s\n", SDL_GetError());
         return false;
@@ -31,41 +35,47 @@ bool SDL3Window::Create(const char* title, int width, int height)
     SDL_WindowFlags windowFlags = SDL_WINDOW_RESIZABLE;
     
 #ifdef MOONCHILD_RENDERER_GL
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+#ifdef __APPLE__
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
+#else
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+#endif
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, 0);
 
     windowFlags |= SDL_WINDOW_OPENGL;
 #endif
 
-    Window = SDL_CreateWindow(title, width, height, windowFlags);
-    if (Window == nullptr)
+    m_Window = SDL_CreateWindow(title, width, height, windowFlags);
+    if (m_Window == nullptr)
     {
         printf("SDL window creation failed! %s\n", SDL_GetError());
         return false;
     }
 
-    SDL_DisplayID displayId = SDL_GetDisplayForWindow(Window);
+    SDL_DisplayID displayId = SDL_GetDisplayForWindow(m_Window);
     float scale = SDL_GetDisplayContentScale(displayId);
     if (scale != 1.0f)
     {
-        SDL_SetWindowSize(Window, width * scale, height * scale);
-        SDL_SetWindowPosition(Window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+        SDL_SetWindowSize(m_Window, width * scale, height * scale);
+        SDL_SetWindowPosition(m_Window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
     }
 
 #ifdef MOONCHILD_RENDERER_GL
-    GlContext = SDL_GL_CreateContext(Window);
-    if (GlContext == nullptr)
+    m_GlContext = SDL_GL_CreateContext(m_Window);
+    if (m_GlContext == nullptr)
     {
         printf("SDL OpenGL context creation failed! %s\n", SDL_GetError());
-        SDL_DestroyWindow(Window);
-        Window = nullptr;
+        SDL_DestroyWindow(m_Window);
+        m_Window = nullptr;
         return false;
     }
 
-    SDL_GL_MakeCurrent(Window, GlContext);
+    SDL_GL_MakeCurrent(m_Window, m_GlContext);
 #endif
     return true;
 }
@@ -73,30 +83,30 @@ bool SDL3Window::Create(const char* title, int width, int height)
 void SDL3Window::Destroy()
 {
 #ifdef MOONCHILD_RENDERER_GL
-    if (GlContext != nullptr)
+    if (m_GlContext != nullptr)
     {
-        SDL_GL_DestroyContext(GlContext);
-        GlContext = nullptr;
+        SDL_GL_DestroyContext(m_GlContext);
+        m_GlContext = nullptr;
     }
 #endif
-    if (Window != nullptr)
+    if (m_Window != nullptr)
     {
-        SDL_DestroyWindow(Window);
-        Window = nullptr;
+        SDL_DestroyWindow(m_Window);
+        m_Window = nullptr;
     }
-    SDL_QuitSubSystem(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
+    SDL_QuitSubSystem(MY_SDL_SUBSYSTEM_FLAGS);
 }
 
 WindowSize SDL3Window::GetPixelSize() const
 {
     WindowSize size;
-    SDL_GetWindowSize(Window, &size.Width, &size.Height);
+    SDL_GetWindowSize(m_Window, &size.Width, &size.Height);
     return size;
 }
 
 void SDL3Window::DisplaySetFullscreen(bool enabled)
 {
-    SDL_SetWindowFullscreen(Window, enabled);
+    SDL_SetWindowFullscreen(m_Window, enabled);
 }
 
 #ifdef MOONCHILD_HAS_DISPLAY_OPTIONS
@@ -124,34 +134,35 @@ bool SDL3Window::HandleFullscreenHotkey(const SDL_Event& ev)
             return false;
         }
         
-        const bool currentlyFullscreen = (SDL_GetWindowFlags(Window) & SDL_WINDOW_FULLSCREEN) != 0;
+        const bool currentlyFullscreen = (SDL_GetWindowFlags(m_Window) & SDL_WINDOW_FULLSCREEN) != 0;
         const bool targetFullscreen = !currentlyFullscreen;
-        if (SDL_SetWindowFullscreen(Window, targetFullscreen))
+        if (SDL_SetWindowFullscreen(m_Window, targetFullscreen))
         {
             DisplayBridge::NotifyFullscreenChange(targetFullscreen ? 1 : 0);
         }
-        SwallowEnterKey = true; // gulp!
+        m_SwallowEnterKey = true; // gulp!
         return true;
     }
 
-    if (SwallowEnterKey)
+    if (m_SwallowEnterKey)
     {
-        SwallowEnterKey = false;
+        m_SwallowEnterKey = false;
         return true;
     }
+
     return false;
 }
-#endif
+#endif // MOONCHILD_HAS_DISPLAY_OPTIONS
 
 #ifdef MOONCHILD_RENDERER_GL
 void SDL3Window::MakeCurrent()
 {
-    SDL_GL_MakeCurrent(Window, GlContext);
+    SDL_GL_MakeCurrent(m_Window, m_GlContext);
 }
 
 void SDL3Window::SwapBuffers()
 {
-    SDL_GL_SwapWindow(Window);
+    SDL_GL_SwapWindow(m_Window);
 }
 
 void SDL3Window::SetSwapInterval(int interval)
@@ -183,7 +194,7 @@ void SDL3Window::PumpOSEvents(IInput* sink, bool& outExitRequested)
 
             case SDL_EVENT_WINDOW_FOCUS_LOST:
 #ifdef MOONCHILD_HAS_DISPLAY_OPTIONS
-                SwallowEnterKey = false;
+                m_SwallowEnterKey = false;
 #endif
                 sink->OnFocusLost();
                 break;
