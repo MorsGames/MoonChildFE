@@ -60,6 +60,14 @@ struct LEVEL_DESCR
   TRIGGER_ITEM  *triglist;       // list with trigger descriptions for level
 };
 
+struct SPEEDRUN_STATE
+{
+  UINT32 gametime;
+  UINT32 leveltime[16];
+  bool running;
+};
+extern SPEEDRUN_STATE speedrun_state;
+
 
 void framework_ExitGame(void);
 HEARTBEAT_FN MC_heartbeat(void);

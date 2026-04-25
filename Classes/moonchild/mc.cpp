@@ -298,15 +298,21 @@ void menuf1232(void);
 void menuf1233(void);
 void menuf1234(void);
 void menuf124(void);
+void menuf125(void);
+void menuf126(void);
 void menuf13(void);
 void menuf131(void);
 void menuf132(void);
+void menuf133(void);
+void menuf134(void);
 void menuf14(void);
 
 void letterswirlscan();
 void letterswirlin();
 void swirladd(char lett, UINT16 swirlx, UINT16 swirly);
 void letterswirlreset();
+
+void reset_game_progress(void);
 
 
 int MC_FLG;
@@ -355,6 +361,7 @@ UINT16    timerid;   // current ID of timer waiting for CD to finish
 
 UINT16    popupmenu;    // force popupmenu after spacebar in title menu
 UINT16    ingameflg;    // ingame flg   is 1 when we are IN the game and not in the title sequence
+SPEEDRUN_STATE speedrun_state;
 UINT16    levelloadedflg = 0;   // if 0 no level is loaded!
 UINT16    puzzleactiveflg = 0;  //if 1 puzzle is on screen
 #ifndef DEMOVERSION
@@ -558,12 +565,17 @@ MENU_ITEM menu1[] =
   { 0,0,0}
 };
 
+char *speedrun_toggle_on  = "+  SPEEDRUN : ON    ";
+char *speedrun_toggle_off = "   SPEEDRUN : OFF   ";
+
 MENU_ITEM menu12[] =
 {
-  {  5, menuf121, "        KEYS        "},
-  {  7, menuf122, "+      VIDEO        "},
-  {  9, menuf123, "+      AUDIO        "},
-  { 11, menuf124, "=      RETURN       "},
+  {  3, menuf121, "        KEYS        "},
+  {  5, menuf122, "+      VIDEO        "},
+  {  7, menuf123, "+      AUDIO        "},
+  {  9, menuf125, speedrun_toggle_off},
+  { 11, menuf126, "   RESET PROGRESS   "},
+  { 13, menuf124, "=      RETURN       "},
   { 0,0,0}
 };
 
@@ -646,6 +658,13 @@ MENU_ITEM menu13[] =
 {
   {  6, menuf131, "+LEAVE YOUR FRIEND  "},
   {  8, menuf132, "=      CANCEL       "},
+  { 0,0,0}
+};
+
+MENU_ITEM menu_confirmreset[] =
+{
+  {  6, menuf133, "   RESET PROGRESS   "},
+  {  8, menuf134, "       CANCEL       "},
   { 0,0,0}
 };
 
@@ -1814,6 +1833,7 @@ HEARTBEAT_FN MC_heartbeatstart(void)
   video->palette(gamepal);
 
   curlevel = world*4+level;
+  speedrun_state.leveltime[curlevel] = 0;
 
 //  abortblackdiamonds = blacksperlevel[curlevel];
 //  scoreabortblackdiamonds = scoreblacksperlevel[curlevel];
@@ -2596,6 +2616,12 @@ if(hoi!=NULL)
   }
 
 #endif
+
+  if (mc_autorun == 0)
+  {
+    speedrun_state.gametime += 1;
+    speedrun_state.leveltime[world*4+level] += 1;
+  }
 
 
 // if pause is active we stop here
@@ -7058,7 +7084,7 @@ HEARTBEAT_FN MC_menu(void)
       titlepic->draw_nokey(*refreshpic, 0, 0, 0, 0, 640, 480);
       menuleavefunc = (HEARTBEAT_FN) MC_leavemenu;
 	}
-    if (menupoint == menu12 || menupoint == menu13)
+    if (menupoint == menu12 || menupoint == menu13 || menupoint == menu_confirmreset)
 	{
       menupoint = menu1;
       menuleavefunc = (HEARTBEAT_FN) MC_buildmenu;
@@ -7243,6 +7269,16 @@ void menuf11(void)
   fadeout = 31;
   menuleavefunc = (HEARTBEAT_FN) MC_fadeout;
 };
+
+void reset_game_progress(void)
+{
+  
+  for (int i = 0; i < 13; i++)
+  {
+    maxlevel = 0;
+    blacksperlevel[i] = 0;
+  }
+}
 
 void menuf12(void)
 {
@@ -7491,6 +7527,40 @@ void menuf1234(void)
   menuleavefunc = (HEARTBEAT_FN) MC_buildmenu;
 };
 
+void menuf125(void)
+{
+  speedrun_state.running = !speedrun_state.running;
+  menu12[3].menutext = speedrun_state.running
+      ? speedrun_toggle_on
+      : speedrun_toggle_off;
+
+  start_afterbuilditem = menuitem;
+  menuleavefunc = (HEARTBEAT_FN) MC_buildmenu;
+}
+
+// Open progress reset confirmation submenu
+void menuf126(void)
+{
+  menupoint = menu_confirmreset;
+  menuleavefunc = (HEARTBEAT_FN) MC_buildmenu;
+}
+
+// Finalize progress reset
+void menuf133(void)
+{
+  menupoint = menu1;
+  reset_game_progress();
+  start_afterbuilditem = 0;
+  menuleavefunc = (HEARTBEAT_FN) MC_buildmenu;
+}
+
+// Cancel progress reset
+void menuf134(void)
+{
+  menupoint = menu12;
+  menuleavefunc = (HEARTBEAT_FN) MC_buildmenu;
+}
+
 void menuf124(void)
 {
   menupoint = menu1;
@@ -7599,6 +7669,11 @@ HEARTBEAT_FN MC_endsequence(void)
   puzzleinteractive = 1;      // if not first level become interactive (choose puzzlepiece!)
 
   ingameflg = 1;              // from this point onward we are IN the game
+  speedrun_state.gametime = 0;
+  for (int i = 0; i < 16; i++)
+  {
+    speedrun_state.leveltime[i] = 0;
+  }
 
 	LOG("G\n");
   configure_level(world+1,level+1);
@@ -7623,7 +7698,7 @@ HEARTBEAT_FN MC_buildmenu(void)
 
   if (menupoint != enter_menu)  // niet echt geweledig mooi... magoed, deadlines enzo..
     {
-      titlepic->draw_nokey(*refreshpic, 0, 160, 0, 160, 640, 480);
+      titlepic->draw_nokey(*refreshpic, 0, 0, 0, 0, 640, 480);
     }
 
   itemcnt = 0;
