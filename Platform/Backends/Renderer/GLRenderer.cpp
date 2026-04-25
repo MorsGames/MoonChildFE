@@ -12,8 +12,10 @@
 #include <cstdio>
 #include <vector>
 
-static const char* VERTEX_SRC =
+static const char VERTEX_SRC[] =
+#ifndef __APPLE__ // Apple platform uses GL 2.1 compat profile which does not support precision keyword
     "precision highp float;\n"
+#endif
     "attribute vec2 aPosition;\n"
     "attribute vec2 aTexCoord;\n"
     "varying vec2 vTexCoord;\n"
@@ -24,8 +26,10 @@ static const char* VERTEX_SRC =
 
 // We could just scale it up with nearest-neighbour scaling, but that'd give us a lot of shimmering on awkward resolutions
 // This shader fixes that
-static const char* FRAGMENT_SRC =
+static const char FRAGMENT_SRC[] =
+#ifndef __APPLE__ // Apple platform uses GL 2.1 compat profile which does not support precision keyword
     "precision mediump float;\n"
+#endif
     "uniform sampler2D uSource;\n"
     "uniform vec2 uSourceSize;\n"
     "uniform vec2 uScale;\n"
