@@ -3,6 +3,7 @@
 #include <objects.hpp>
 #include <globals.hpp>
 #include <prefs.hpp>
+#include <mc.hpp>
 
 #define DEMOVERSION2
 
@@ -1067,10 +1068,11 @@ void stop_cammove(void)
 
 void play_madeit(void)
 {
-  if (audio->get_dsound() && sfxflg) // is dsound on?
+  if (audio->get_dsound() && sfxflg && !speedrun_state.level_complete) // is dsound on?
   {
     audio->play_sound_1shot(wav_madeit,0,0);
   }
+  speedrun_state.level_complete = true;
 }
 
 void play_heks(INT32 x, INT32 y)

@@ -1862,6 +1862,7 @@ HEARTBEAT_FN MC_heartbeatstart(void)
     }
   video->palette(gamepal);
 
+  speedrun_state.level_complete = false;
   curlevel = world*4+level;
   speedrun_state.leveltime[curlevel] = 0;
 
@@ -2647,7 +2648,7 @@ if(hoi!=NULL)
 
 #endif
 
-  if (mc_autorun == 0)
+  if (!speedrun_state.level_complete)
   {
     speedrun_state.gametime += 1;
     speedrun_state.leveltime[world*4+level] += 1;

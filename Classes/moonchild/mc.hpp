@@ -65,6 +65,7 @@ struct SPEEDRUN_STATE
   UINT32 gametime;
   UINT32 leveltime[16];
   bool running;
+  bool level_complete;
 };
 extern SPEEDRUN_STATE speedrun_state;
 
