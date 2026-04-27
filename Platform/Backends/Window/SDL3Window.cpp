@@ -205,10 +205,12 @@ void SDL3Window::PumpOSEvents(IInput* sink, bool& outExitRequested)
         switch (sdlEvent.type)
         {
             case SDL_EVENT_WINDOW_ENTER_FULLSCREEN:
+                SDL_HideCursor();
                 DisplayBridge::NotifyFullscreenChange(1);
                 break;
 
             case SDL_EVENT_WINDOW_LEAVE_FULLSCREEN:
+                SDL_ShowCursor();
                 DisplayBridge::NotifyFullscreenChange(0);
                 break;
 
