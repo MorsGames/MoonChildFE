@@ -842,7 +842,7 @@ int hoi_live_warp (OBJECT *object, UINT32 param)
   hoiblood->xfloat = object->x<<8;
   hoiblood->yfloat = object->y<<8;
 
-  if (world == 2) set_backpak_volume(-2100);
+  if (world == 2) set_backpak_volume(-3600 /* -2100 */);
 
   if (hoiblood->ycamxtra > 4 ) hoiblood->ycamxtra -= 4;
   if (hoiblood->ycamxtra < -4) hoiblood->ycamxtra += 4;
@@ -2221,11 +2221,11 @@ int hoi_fly_live (OBJECT *object, UINT32 param)
 
   // handle y-movement
 
-  volume = -1600;
+  volume = -3600; //-1600;
   
   if (hoiblood->upkey)
     {
-      volume = -1100;
+      volume = -3200; // -1100;
       if (hoiblood->yspd > 0)
 	{
 	  hoiblood->yspd -= SPD_BRAKE;
@@ -2238,7 +2238,7 @@ int hoi_fly_live (OBJECT *object, UINT32 param)
 
   if (hoiblood->downkey)
     {
-	volume = -2100;
+	volume = -3800; // -2100;
 	if (hoiblood->yspd < 0)
 	{
 	  hoiblood->yspd += SPD_BRAKE;
