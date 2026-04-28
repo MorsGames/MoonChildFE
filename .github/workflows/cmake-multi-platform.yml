@@ -25,15 +25,15 @@ jobs:
           - name: Windows x64
             os: windows-latest
             msvc_dev_arch: x64
-            configure_preset: winx64-release
-            build_preset: build-winx64-release
-            artifact_platform: WinX64
+            configure_preset: windowsx64-release
+            build_preset: build-windowsx64-release
+            artifact_platform: WindowsX64
           - name: Windows x86
             os: windows-latest
             msvc_dev_arch: amd64_x86
-            configure_preset: winx86-release
-            build_preset: build-winx86-release
-            artifact_platform: WinX86
+            configure_preset: windowsx86-release
+            build_preset: build-windowsx86-release
+            artifact_platform: WindowsX86
           - name: Linux x64
             os: ubuntu-latest
             configure_preset: linuxx64-release
@@ -146,14 +146,14 @@ jobs:
     - name: Download the Windows x64 artifact
       uses: actions/download-artifact@v4
       with:
-        name: MoonChildFE-WinX64
-        path: assets/WinX64
+        name: MoonChildFE-WindowsX64
+        path: assets/WindowsX64
 
     - name: Download the Windows x86 artifact
       uses: actions/download-artifact@v4
       with:
-        name: MoonChildFE-WinX86
-        path: assets/WinX86
+        name: MoonChildFE-WindowsX86
+        path: assets/WindowsX86
 
     - name: Download the Linux x64 artifact
       uses: actions/download-artifact@v4
@@ -165,8 +165,8 @@ jobs:
       run: |
         set -eux
         mkdir -p dist
-        (cd assets/WinX64 && zip -r "$GITHUB_WORKSPACE/dist/MoonChildFE-WinX64.zip" .)
-        (cd assets/WinX86 && zip -r "$GITHUB_WORKSPACE/dist/MoonChildFE-WinX86.zip" .)
+        (cd assets/WindowsX64 && zip -r "$GITHUB_WORKSPACE/dist/MoonChildFE-WindowsX64.zip" .)
+        (cd assets/WindowsX86 && zip -r "$GITHUB_WORKSPACE/dist/MoonChildFE-WindowsX86.zip" .)
         (cd assets/LinuxX64 && tar -czf "$GITHUB_WORKSPACE/dist/MoonChildFE-LinuxX64.tar.gz" .)
 
     - name: Create the GitHub Release

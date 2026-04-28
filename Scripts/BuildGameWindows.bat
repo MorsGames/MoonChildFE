@@ -1,10 +1,10 @@
 @echo off
-REM Usage: BuildGameWin.bat [Debug|Release] [WinX64|WinX86]
+REM Usage: BuildGameWindows.bat [Debug|Release] [WindowsX64|WindowsX86]
 setlocal EnableDelayedExpansion
 
 set "CONFIG=Debug"
-set "ARCH_EXPORT=WinX64"
-set "PRESET_BASE=winx64"
+set "ARCH_EXPORT=WindowsX64"
+set "PRESET_BASE=windowsx64"
 set "PRESET=!PRESET_BASE!-debug"
 set "BUILD_PRESET=build-!PRESET_BASE!-debug"
 set "VS_ARCH=x64"
@@ -18,9 +18,9 @@ for %%A in (%*) do (
         set "CONFIG=Debug"
         set "PRESET=!PRESET_BASE!-debug"
         set "BUILD_PRESET=build-!PRESET_BASE!-debug"
-    ) else if /I "%%A"=="WinX86" (
-        set "ARCH_EXPORT=WinX86"
-        set "PRESET_BASE=winx86"
+    ) else if /I "%%A"=="WindowsX86" (
+        set "ARCH_EXPORT=WindowsX86"
+        set "PRESET_BASE=windowsx86"
         set "VS_ARCH=x86"
         if /I "!CONFIG!"=="Release" (
             set "PRESET=!PRESET_BASE!-release"
@@ -29,9 +29,31 @@ for %%A in (%*) do (
             set "PRESET=!PRESET_BASE!-debug"
             set "BUILD_PRESET=build-!PRESET_BASE!-debug"
         )
-    ) else if /I "%%A"=="WinX64" (
-        set "ARCH_EXPORT=WinX64"
-        set "PRESET_BASE=winx64"
+    ) else if /I "%%A"=="WindowsX86" (
+        set "ARCH_EXPORT=WindowsX86"
+        set "PRESET_BASE=windowsx86"
+        set "VS_ARCH=x86"
+        if /I "!CONFIG!"=="Release" (
+            set "PRESET=!PRESET_BASE!-release"
+            set "BUILD_PRESET=build-!PRESET_BASE!-release"
+        ) else (
+            set "PRESET=!PRESET_BASE!-debug"
+            set "BUILD_PRESET=build-!PRESET_BASE!-debug"
+        )
+    ) else if /I "%%A"=="WindowsX64" (
+        set "ARCH_EXPORT=WindowsX64"
+        set "PRESET_BASE=windowsx64"
+        set "VS_ARCH=x64"
+        if /I "!CONFIG!"=="Release" (
+            set "PRESET=!PRESET_BASE!-release"
+            set "BUILD_PRESET=build-!PRESET_BASE!-release"
+        ) else (
+            set "PRESET=!PRESET_BASE!-debug"
+            set "BUILD_PRESET=build-!PRESET_BASE!-debug"
+        )
+    ) else if /I "%%A"=="WindowsX64" (
+        set "ARCH_EXPORT=WindowsX64"
+        set "PRESET_BASE=windowsx64"
         set "VS_ARCH=x64"
         if /I "!CONFIG!"=="Release" (
             set "PRESET=!PRESET_BASE!-release"
@@ -80,16 +102,16 @@ if %ERRORLEVEL% neq 0 (
     exit /b 1
 )
 
-echo %R_LOG%Configuring MoonChildFE ^(!ARCH_EXPORT! / !CONFIG!^)...%R_0%
+echo %R_LOG%Configuring the game... ^(!ARCH_EXPORT! / !CONFIG!^)%R_0%
 cmake --preset "!PRESET!"
 if %ERRORLEVEL% neq 0 (
     exit /b %ERRORLEVEL%
 )
 
-echo %R_LOG%Building MoonChildFE...%R_0%
+echo %R_LOG%Building the game...%R_0%
 cmake --build --preset "!BUILD_PRESET!" --target "MoonChildFE" --parallel "%NUMBER_OF_PROCESSORS%"
 if %ERRORLEVEL% neq 0 (
     exit /b %ERRORLEVEL%
 )
 
-echo %R_OK%Build complete: MoonChildFE ^(!ARCH_EXPORT! / !CONFIG!^).%R_0%
+echo %R_OK%Build complete! ^(!ARCH_EXPORT! / !CONFIG!^).%R_0%

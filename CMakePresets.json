@@ -2,35 +2,35 @@
   "version": 4,
   "configurePresets": [
     {
-      "name": "winx64-debug",
+      "name": "windowsx64-debug",
       "generator": "Ninja Multi-Config",
       "toolchainFile": "${sourceDir}/CMake/Toolchains/Windows.cmake",
-      "binaryDir": "${sourceDir}/CMakeOut/WinX64/Debug",
+      "binaryDir": "${sourceDir}/CMakeOut/WindowsX64/Debug",
       "cacheVariables": {
-        "MOONCHILD_OUTPUT_PLATFORM": "WinX64",
-        "MOONCHILD_TARGET_ARCH": "WinX64"
+        "MOONCHILD_OUTPUT_PLATFORM": "WindowsX64",
+        "MOONCHILD_TARGET_ARCH": "WindowsX64"
       }
     },
     {
-      "name": "winx64-release",
-      "inherits": ["winx64-debug"],
-      "binaryDir": "${sourceDir}/CMakeOut/WinX64/Release",
+      "name": "windowsx64-release",
+      "inherits": ["windowsx64-debug"],
+      "binaryDir": "${sourceDir}/CMakeOut/WindowsX64/Release",
       "cacheVariables": {}
     },
     {
-      "name": "winx86-debug",
+      "name": "windowsx86-debug",
       "generator": "Ninja Multi-Config",
       "toolchainFile": "${sourceDir}/CMake/Toolchains/Windows.cmake",
-      "binaryDir": "${sourceDir}/CMakeOut/WinX86/Debug",
+      "binaryDir": "${sourceDir}/CMakeOut/WindowsX86/Debug",
       "cacheVariables": {
-        "MOONCHILD_OUTPUT_PLATFORM": "WinX86",
-        "MOONCHILD_TARGET_ARCH": "WinX86"
+        "MOONCHILD_OUTPUT_PLATFORM": "WindowsX86",
+        "MOONCHILD_TARGET_ARCH": "WindowsX86"
       }
     },
     {
-      "name": "winx86-release",
-      "inherits": ["winx86-debug"],
-      "binaryDir": "${sourceDir}/CMakeOut/WinX86/Release",
+      "name": "windowsx86-release",
+      "inherits": ["windowsx86-debug"],
+      "binaryDir": "${sourceDir}/CMakeOut/WindowsX86/Release",
       "cacheVariables": {}
     },
     {
@@ -72,19 +72,19 @@
       }
     },
     {
-      "name": "wasm-debug",
+      "name": "web-debug",
       "generator": "Ninja",
-      "toolchainFile": "${sourceDir}/CMake/Toolchains/Emscripten.cmake",
+      "toolchainFile": "${sourceDir}/CMake/Toolchains/Web.cmake",
       "binaryDir": "${sourceDir}/CMakeOut/Web/Debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "MOONCHILD_OUTPUT_PLATFORM": "Web",
-        "MOONCHILD_TARGET_ARCH": "Web"
+        "MOONCHILD_TARGET_ARCH": "WASM"
       }
     },
     {
-      "name": "wasm-release",
-      "inherits": ["wasm-debug"],
+      "name": "web-release",
+      "inherits": ["web-debug"],
       "binaryDir": "${sourceDir}/CMakeOut/Web/Release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
@@ -93,23 +93,23 @@
   ],
   "buildPresets": [
     {
-      "name": "build-winx64-debug",
-      "configurePreset": "winx64-debug",
+      "name": "build-windowsx64-debug",
+      "configurePreset": "windowsx64-debug",
       "configuration": "Debug"
     },
     {
-      "name": "build-winx64-release",
-      "configurePreset": "winx64-release",
+      "name": "build-windowsx64-release",
+      "configurePreset": "windowsx64-release",
       "configuration": "Release"
     },
     {
-      "name": "build-winx86-debug",
-      "configurePreset": "winx86-debug",
+      "name": "build-windowsx86-debug",
+      "configurePreset": "windowsx86-debug",
       "configuration": "Debug"
     },
     {
-      "name": "build-winx86-release",
-      "configurePreset": "winx86-release",
+      "name": "build-windowsx86-release",
+      "configurePreset": "windowsx86-release",
       "configuration": "Release"
     },
     {
@@ -133,12 +133,12 @@
       "configuration": "Release"
     },
     {
-      "name": "build-wasm-debug",
-      "configurePreset": "wasm-debug"
+      "name": "build-web-debug",
+      "configurePreset": "web-debug"
     },
     {
-      "name": "build-wasm-release",
-      "configurePreset": "wasm-release"
+      "name": "build-web-release",
+      "configurePreset": "web-release"
     }
   ]
 }

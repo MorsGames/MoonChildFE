@@ -12,7 +12,9 @@ Differences from the original Windows 95 release include (but not limited to):
 - Fullscreen and windowed display modes
 - 50FPS and 60FPS toggle, with Vsync support
 - Nice and shimmer-free image scaling
-- New "Safe Visuals" mode, which makes the final level slightly easier on the eyes
+- New Speedrun mode, which adds a speedrun timer to the top left corner of the screen
+- New Easier Shoot option, which makes the jetpack shooting controls more intuitive
+- New Safe Visuals mode, which makes the final level slightly easier on the eyes
 - Slightly higher quality audio
 - Alternate title screen music :D
 - Updated credits
@@ -47,10 +49,10 @@ cd MoonChildFE
 5. You have three options here:
     1. Open the project in Visual Studio Code (or VSCodium) and use the built-in launch configs.
     2. Run a build script manually:
-        - For a 64-bit build, run `Scripts\BuildGameWin.bat`
-        - For a 32-bit build, run `Scripts\BuildGameWin.bat WinX86`
+        - For a Windows x64 build, run `Scripts\BuildGameWindows.bat`
+        - For a Windows x86 build, run `Scripts\BuildGameWindows.bat WindowsX86`
         - For a Linux build, Install Windows Subsystem for Linux (WSL) and follow the Linux build instructions below.
-        - For a web build, run `Scripts\BuildGameWasm.bat`
+        - For a web build, run `Scripts\BuildGameWeb.bat`
         - You can also add `Release` to the end of the command to build the game in release mode.
     3. Use the CMake commands directly. If you're taking this route, you probably don't need a guide in the first place.
 

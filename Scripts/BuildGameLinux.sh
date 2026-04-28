@@ -35,10 +35,10 @@ if [[ "$CONFIG" == "Release" ]]; then
     BUILD_PRESET="build-${PRESET_BASE}-release"
 fi
 
-echo "${R_LOG}Configuring MoonChildFE ($ARCH_EXPORT / $CONFIG)...${R_0}"
+echo "${R_LOG}Configuring the game... ($ARCH_EXPORT / $CONFIG)${R_0}"
 cmake --preset "$PRESET"
 
-echo "${R_LOG}Building MoonChildFE...${R_0}"
-cmake --build --preset "$BUILD_PRESET" --target MoonChildFE --parallel "$(nproc)"
+echo "${R_LOG}Building the game...${R_0}"
+cmake --build --preset "$BUILD_PRESET" --target "MoonChildFE" --parallel "$(nproc)"
 
-echo "${R_OK}Build complete: MoonChildFE ($ARCH_EXPORT / $CONFIG).${R_0}"
+echo "${R_OK}Build complete! ($ARCH_EXPORT / $CONFIG).${R_0}"

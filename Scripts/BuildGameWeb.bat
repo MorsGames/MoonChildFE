@@ -1,20 +1,20 @@
 @echo off
-REM Usage: BuildGameWasm.bat [Debug|Release]
+REM Usage: BuildGameWeb.bat [Debug|Release]
 setlocal EnableDelayedExpansion
 
 set "CONFIG=Debug"
-set "PRESET=wasm-debug"
-set "BUILD_PRESET=build-wasm-debug"
+set "PRESET=web-debug"
+set "BUILD_PRESET=build-web-debug"
 
 for %%A in (%*) do (
     if /I "%%A"=="Release" (
         set "CONFIG=Release"
-        set "PRESET=wasm-release"
-        set "BUILD_PRESET=build-wasm-release"
+        set "PRESET=web-release"
+        set "BUILD_PRESET=build-web-release"
     ) else if /I "%%A"=="Debug" (
         set "CONFIG=Debug"
-        set "PRESET=wasm-debug"
-        set "BUILD_PRESET=build-wasm-debug"
+        set "PRESET=web-debug"
+        set "BUILD_PRESET=build-web-debug"
     )
 )
 
@@ -49,16 +49,16 @@ if %ERRORLEVEL% neq 0 (
 
 cd /d "%~dp0.."
 
-echo %R_LOG%Configuring MoonChildFE ^(Web / !CONFIG!^)...%R_0%
+echo %R_LOG%Configuring the game... ^(Web / !CONFIG!^)%R_0%
 cmake --preset "!PRESET!"
 if %ERRORLEVEL% neq 0 (
     exit /b %ERRORLEVEL%
 )
 
-echo %R_LOG%Building MoonChildFE WASM...%R_0%
+echo %R_LOG%Building the game...%R_0%
 cmake --build --preset "!BUILD_PRESET!" --target "MoonChildFE" --parallel "%NUMBER_OF_PROCESSORS%"
 if %ERRORLEVEL% neq 0 (
     exit /b %ERRORLEVEL%
 )
 
-echo %R_OK%Build complete: MoonChildFE ^(Web / !CONFIG!^).%R_0%
+echo %R_OK%Build complete! ^(Web / !CONFIG!^).%R_0%

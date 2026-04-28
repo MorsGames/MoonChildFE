@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.28.3)
+cmake_minimum_required(VERSION 3.25.1)
 
 project(MoonChildFE LANGUAGES C CXX)
 set(EXECUTABLE_NAME MoonChildFE)
@@ -109,15 +109,15 @@ endif()
 
 if(MOONCHILD_RENDERER_SDL3 AND NOT MOONCHILD_WINDOW_SDL3)
     message(FATAL_ERROR
-        "MOONCHILD_RENDERER_SDL3 requires MOONCHILD_WINDOW_SDL3!")
+        "MOONCHILD_RENDERER_SDL3 requires SDL3 for windowing!")
 endif()
 if(MOONCHILD_USE_OPENGL AND NOT MOONCHILD_WINDOW_SDL3)
     message(FATAL_ERROR
-        "OpenGL renderers require MOONCHILD_WINDOW_SDL3!")
+        "OpenGL renderers require SDL3 for windowing!")
 endif()
 if(EMSCRIPTEN AND MOONCHILD_RENDERER_OPENGL)
     message(FATAL_ERROR
-        "The OpenGL 2.1 renderer is not supported on Emscripten! Use the OpenGL ES 2.0 renderer instead.")
+        "The OpenGL 2.1 renderer is not supported on the web! Use the OpenGL ES 2.0 renderer instead.")
 endif()
 
 # Architecture
@@ -175,14 +175,84 @@ else()
 endif()
 
 # Game + framework
-# TODO: Unglobify this
-file(GLOB MOONCHILD_GAME_SOURCES CONFIGURE_DEPENDS
-    ${MOONCHILD_GAME_DIR}/*.cpp
+set(MOONCHILD_GAME_SOURCES
+    Classes/moonchild/anim.cpp
+    Classes/moonchild/asset.cpp
+    Classes/moonchild/asteroid.cpp
+    Classes/moonchild/basic.cpp
+    Classes/moonchild/bat.cpp
+    Classes/moonchild/bbot.cpp
+    Classes/moonchild/bee.cpp
+    Classes/moonchild/bolt.cpp
+    Classes/moonchild/bonus.cpp
+    Classes/moonchild/boss.cpp
+    Classes/moonchild/bouncey.cpp
+    Classes/moonchild/bullet.cpp
+    Classes/moonchild/bump.cpp
+    Classes/moonchild/cannon.cpp
+    Classes/moonchild/chain.cpp
+    Classes/moonchild/claw.cpp
+    Classes/moonchild/cloud.cpp
+    Classes/moonchild/diamond.cpp
+    Classes/moonchild/doldoler.cpp
+    Classes/moonchild/editor.cpp
+    Classes/moonchild/element.cpp
+    Classes/moonchild/elevat.cpp
+    Classes/moonchild/glim.cpp
+    Classes/moonchild/globals.cpp
+    Classes/moonchild/goodday.cpp
+    Classes/moonchild/gravlift.cpp
+    Classes/moonchild/gumbal.cpp
+    Classes/moonchild/hoi.cpp
+    Classes/moonchild/ironauto.cpp
+    Classes/moonchild/ironring.cpp
+    Classes/moonchild/levinits.cpp
+    Classes/moonchild/lift.cpp
+    Classes/moonchild/mc.cpp
+    Classes/moonchild/metbal.cpp
+    Classes/moonchild/metcan.cpp
+    Classes/moonchild/mine.cpp
+    Classes/moonchild/mixer.cpp
+    Classes/moonchild/mouth.cpp
+    Classes/moonchild/mushroom.cpp
+    Classes/moonchild/objects.cpp
+    Classes/moonchild/paal.cpp
+    Classes/moonchild/plant.cpp
+    Classes/moonchild/plof.cpp
+    Classes/moonchild/prefs.cpp
+    Classes/moonchild/ptoei.cpp
+    Classes/moonchild/punt.cpp
+    Classes/moonchild/robyn.cpp
+    Classes/moonchild/rock.cpp
+    Classes/moonchild/rocket.cpp
+    Classes/moonchild/score.cpp
+    Classes/moonchild/scroll.cpp
+    Classes/moonchild/seamine.cpp
+    Classes/moonchild/smlheart.cpp
+    Classes/moonchild/snake.cpp
+    Classes/moonchild/sneak.cpp
+    Classes/moonchild/sokoban.cpp
+    Classes/moonchild/sound.cpp
+    Classes/moonchild/spies.cpp
+    Classes/moonchild/spike.cpp
+    Classes/moonchild/stukhout.cpp
+    Classes/moonchild/switsj.cpp
+    Classes/moonchild/test.cpp
+    Classes/moonchild/trigger.cpp
+    Classes/moonchild/vgdll.cpp
+    Classes/moonchild/warp.cpp
+    Classes/moonchild/weight.cpp
+    Classes/moonchild/wheel.cpp
 )
 
-file(GLOB MOONCHILD_FRAMEWORK_SOURCES CONFIGURE_DEPENDS
-    ${MOONCHILD_FRAMEWORK_DIR}/*.cpp
-    ${MOONCHILD_FRAMEWORK_DIR}/*.c
+set(MOONCHILD_FRAMEWORK_SOURCES
+    Classes/framewrk/blitbuf.cpp
+    Classes/framewrk/fastfile.cpp
+    Classes/framewrk/pcxff.cpp
+    Classes/framewrk/sprite.cpp
+    Classes/framewrk/timer.cpp
+    Classes/framewrk/unzip.c
+    Classes/framewrk/video.cpp
 )
 
 # Desktop app shell + bridges + audio helpers
@@ -332,17 +402,26 @@ endif()
 
 # Platform specific configuration
 if(EMSCRIPTEN)
-    set(PLATFORM_NAME "Emscripten")
-    target_compile_definitions(${EXECUTABLE_NAME} PRIVATE MOONCHILD_EMSCRIPTEN)
-    include(${CMAKE_CURRENT_LIST_DIR}/CMake/Platforms/Emscripten.cmake)
+    set(PLATFORM_NAME "Web")
+    target_compile_definitions(${EXECUTABLE_NAME} PRIVATE MOONCHILD_WEB)
+    include(${CMAKE_CURRENT_LIST_DIR}/CMake/Platforms/Web.cmake)
+    if(NOT MOONCHILD_OUTPUT_PLATFORM)
+        set(MOONCHILD_OUTPUT_PLATFORM "Web")
+    endif()
 elseif(WIN32 AND ARCH_64)
-    set(PLATFORM_NAME "Windows64")
+    set(PLATFORM_NAME "Windows")
     target_compile_definitions(${EXECUTABLE_NAME} PRIVATE MOONCHILD_WINDOWS)
     include(${CMAKE_CURRENT_LIST_DIR}/CMake/Platforms/Windows.cmake)
+    if(NOT MOONCHILD_OUTPUT_PLATFORM)
+        set(MOONCHILD_OUTPUT_PLATFORM "WindowsX64")
+    endif()
 elseif(WIN32 AND ARCH_32)
-    set(PLATFORM_NAME "Windows32")
+    set(PLATFORM_NAME "Windows")
     target_compile_definitions(${EXECUTABLE_NAME} PRIVATE MOONCHILD_WINDOWS)
     include(${CMAKE_CURRENT_LIST_DIR}/CMake/Platforms/Windows.cmake)
+    if(NOT MOONCHILD_OUTPUT_PLATFORM)
+        set(MOONCHILD_OUTPUT_PLATFORM "WindowsX86")
+    endif()
 elseif(UNIX AND NOT APPLE)
     set(PLATFORM_NAME "Linux")
     target_compile_definitions(${EXECUTABLE_NAME} PRIVATE MOONCHILD_LINUX)

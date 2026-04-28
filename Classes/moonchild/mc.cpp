@@ -494,7 +494,7 @@ UINT16 curpuzzle;
 char tempscore[] = "0000000000";
 
 char optionstext[] = // "--------------------"
-#ifdef MOONCHILD_EMSCRIPTEN
+#ifdef MOONCHILD_WEB
                       "                    "
                       "                    "
                       "                    "
@@ -555,7 +555,7 @@ MENU_ITEM enter_menu[] =
 
 MENU_ITEM menu1[] =
 {
-#ifdef MOONCHILD_EMSCRIPTEN
+#ifdef MOONCHILD_WEB
   {  6, menuf11, "=       PLAY        "},
   {  8, menuf12, "=     SETTINGS      "},
   { 10, menuf14, "=       DEMO        "},
