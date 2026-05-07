@@ -5510,7 +5510,8 @@ void glob_init(void)
     {
       sinus512[i] = (short) (sin(((PI*2)/1024)*i) * 512);
     }
-  PCG32Seed(0);   //time()
+  time_t timedata = time(NULL);
+  PCG32Seed((unsigned int)timedata);
 
   log_out("allocing memory for dots");
   dotbase = (UINTPTR *) malloc(sizeof(UINTPTR) * 10000); //10000 pixels
