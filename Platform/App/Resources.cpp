@@ -118,7 +118,7 @@ static void EnsureBasePath()
     char exeDir[4096];
     char writeablePath[4096];
     std::snprintf(exeDir, sizeof(exeDir), "%s", SDL_GetBasePath());
-    std::snprintf(writeablePath, sizeof(exeDir), "%s", SDL_GetPrefPath("moonchild", "moonchild"));
+    std::snprintf(writeablePath, sizeof(writeablePath), "%s", SDL_GetPrefPath(NULL, "MoonchildFE"));
 
     if (exeDir[0] == '\0' || writeablePath[0] == '\0')
     {
@@ -127,10 +127,20 @@ static void EnsureBasePath()
     else
     {
 
-        std::snprintf(BasePath, sizeof(BasePath), "%s", exeDir);
-        std::snprintf(DataPath, sizeof(DataPath), "%s%s", BasePath, "data/");
-        std::snprintf(WritablePath, sizeof(WritablePath), "%s", writeablePath);
+    std::snprintf(BasePath, sizeof(BasePath), "%s", exeDir);
+    std::snprintf(DataPath, sizeof(DataPath), "%s%s", BasePath, "data/");
+    std::snprintf(WritablePath, sizeof(WritablePath), "%s", writeablePath);
+
+    char portableFilePath[4096];
+    std::snprintf(portableFilePath, sizeof(portableFilePath), "%s%s", BasePath,
+                  ".portable");
+
+    bool isPortable = SDL_GetPathInfo(portableFilePath, NULL);
+
+    if (isPortable) {
+      std::snprintf(WritablePath, sizeof(WritablePath), "%s", BasePath);
     }
+  }
 
 #endif
 }
