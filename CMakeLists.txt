@@ -146,7 +146,7 @@ endif()
 
 # SDL_gamecontrollerdb setup
 if(MOONCHILD_VENDORED_GAMECONTROLLERDB)
-    set(MOONCHILD_GAMECONTROLLERDB_PATH "gamecontrollerdb.txt")
+    set(MOONCHILD_GAMECONTROLLERDB_PATH "data/gamecontrollerdb.txt")
 else()
     set(MOONCHILD_GAMECONTROLLERDB_PATH "$ENV{MOONCHILD_GAMECONTROLLERDB_PATH}")
     file(TO_CMAKE_PATH "${MOONCHILD_GAMECONTROLLERDB_PATH}" MOONCHILD_GAMECONTROLLERDB_PATH)
@@ -426,15 +426,19 @@ set_target_properties(${EXECUTABLE_NAME} PROPERTIES
 
 if(MOONCHILD_INPUT_SDL3 AND NOT EMSCRIPTEN AND MOONCHILD_VENDORED_GAMECONTROLLERDB AND APPLE)
     add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory
+            $<TARGET_FILE_DIR:${EXECUTABLE_NAME}>/../Resources/data
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${MOONCHILD_LIBRARY_DIR}/SDL_GameControllerDB/gamecontrollerdb.txt"
-            $<TARGET_FILE_DIR:${EXECUTABLE_NAME}>/../Resources/gamecontrollerdb.txt
+            $<TARGET_FILE_DIR:${EXECUTABLE_NAME}>/../Resources/data/gamecontrollerdb.txt
     )
 elseif(MOONCHILD_INPUT_SDL3 AND NOT EMSCRIPTEN AND MOONCHILD_VENDORED_GAMECONTROLLERDB AND NOT APPLE)
     add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory
+            $<TARGET_FILE_DIR:${EXECUTABLE_NAME}>/data
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${MOONCHILD_LIBRARY_DIR}/SDL_GameControllerDB/gamecontrollerdb.txt"
-            $<TARGET_FILE_DIR:${EXECUTABLE_NAME}>/gamecontrollerdb.txt
+            $<TARGET_FILE_DIR:${EXECUTABLE_NAME}>/data/gamecontrollerdb.txt
     )
 endif()
 

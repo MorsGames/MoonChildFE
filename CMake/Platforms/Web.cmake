@@ -2,7 +2,7 @@ target_link_options(${EXECUTABLE_NAME} PRIVATE
     --shell-file "${CMAKE_SOURCE_DIR}/Platform/Web/shell.html"
     --pre-js "${CMAKE_SOURCE_DIR}/Platform/Web/pre.js"
     "SHELL:--preload-file ${CMAKE_SOURCE_DIR}/Data@/data"
-    "SHELL:--preload-file ${CMAKE_SOURCE_DIR}/Libraries/SDL_GameControllerDB/gamecontrollerdb.txt@/gamecontrollerdb.txt"
+    "SHELL:--preload-file ${CMAKE_SOURCE_DIR}/Libraries/SDL_GameControllerDB/gamecontrollerdb.txt@/data/gamecontrollerdb.txt"
     -sALLOW_MEMORY_GROWTH=1
     -sEXIT_RUNTIME=0
     -sFORCE_FILESYSTEM=1
