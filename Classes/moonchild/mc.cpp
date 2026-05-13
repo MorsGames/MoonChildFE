@@ -1363,13 +1363,19 @@ HEARTBEAT_FN MC_playingmovie(void)
   handleinput1shot();
   grabber2();
 
-  if (movie->stillplaying() && !shootkey)
+  bool shootPressed = shootkey != 0;
+  bool mousePressed = mouselchng != 0 && mouselbut != 0;
+
+  if (movie->stillplaying() && !shootPressed && !mousePressed)
   {
     return (HEARTBEAT_FN) MC_playingmovie;
   }
   else
   {
-    shootkey = 0;
+    if (shootPressed)
+        shootkey = 0;
+    if (mousePressed)
+        mouselchng = 0;
     movie->close(mcsmk);
     mcsmk = 0;
     delete movbuf;

@@ -45,7 +45,6 @@ static void TrimToParentDirectory(char* path)
 static void FailedToGetPathsViaSDL()
 {
     char exeDir[4096];
-
     exeDir[0] = '\0';
 
 #ifdef _WIN32
@@ -179,7 +178,7 @@ void SyncPersistentStorage()
 
 void LoadProgress()
 {
-    FILE* fp = std::fopen(FullWritablePath(const_cast<char*>("mc_progress.dat")), "rb");
+    FILE* fp = std::fopen(FullWritablePath("mc_progress.dat"), "rb");
     if (fp == nullptr)
     {
         return;
@@ -194,7 +193,7 @@ void LoadProgress()
 
 void SaveProgress()
 {
-    FILE* fp = std::fopen(FullWritablePath(const_cast<char*>("mc_progress.dat")), "wb");
+    FILE* fp = std::fopen(FullWritablePath("mc_progress.dat"), "wb");
     if (fp == nullptr)
     {
         return;

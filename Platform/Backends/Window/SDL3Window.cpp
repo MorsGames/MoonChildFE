@@ -7,6 +7,7 @@
 #include "glad.h"
 #endif
 
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 
@@ -17,20 +18,72 @@ static void* LoadSdlGlProc(const char* name)
 }
 #endif
 
-static void ScaleCoordinates(SDL_Window* window, float windowX, float windowY, float& outX, float& outY)
+struct GameViewport
+{
+    float X = 0.0f;
+    float Y = 0.0f;
+    float Width = 0.0f;
+    float Height = 0.0f;
+};
+
+constexpr float GAME_WIDTH = 640.0f;
+constexpr float GAME_HEIGHT = 480.0f;
+
+static GameViewport GetGameViewport(SDL_Window* window)
 {
     int windowWidth = 0;
     int windowHeight = 0;
     SDL_GetWindowSize(window, &windowWidth, &windowHeight);
+
+    GameViewport viewport;
     if (windowWidth <= 0 || windowHeight <= 0)
     {
-        outX = windowX;
-        outY = windowY;
+        return viewport;
+    }
+
+    const float scaleX = static_cast<float>(windowWidth) / GAME_WIDTH;
+    const float scaleY = static_cast<float>(windowHeight) / GAME_HEIGHT;
+    const float scale = std::min(scaleX, scaleY);
+
+    viewport.Width = GAME_WIDTH * scale;
+    viewport.Height = GAME_HEIGHT * scale;
+    viewport.X = (static_cast<float>(windowWidth) - viewport.Width) * 0.5f;
+    viewport.Y = (static_cast<float>(windowHeight) - viewport.Height) * 0.5f;
+    
+    return viewport;
+}
+
+static void ScaleAbsoluteCoordinates(SDL_Window* window, float inX, float inY, float& outX, float& outY)
+{
+    const GameViewport viewport = GetGameViewport(window);
+    if (viewport.Width <= 0.0f || viewport.Height <= 0.0f)
+    {
+        outX = inX;
+        outY = inY;
         return;
     }
 
-    outX = windowX * (640.0f / static_cast<float>(windowWidth));
-    outY = windowY * (480.0f / static_cast<float>(windowHeight));
+    const float normalizedX = (inX - viewport.X) / viewport.Width;
+    const float normalizedY = (inY - viewport.Y) / viewport.Height;
+    const float clampedX = std::max(0.0f, std::min(1.0f, normalizedX));
+    const float clampedY = std::max(0.0f, std::min(1.0f, normalizedY));
+
+    outX = clampedX * GAME_WIDTH;
+    outY = clampedY * GAME_HEIGHT;
+}
+
+static void ScaleRelativeCoordinates(SDL_Window* window, float inX, float inY, float& outX, float& outY)
+{
+    const GameViewport viewport = GetGameViewport(window);
+    if (viewport.Width <= 0.0f || viewport.Height <= 0.0f)
+    {
+        outX = inX;
+        outY = inY;
+        return;
+    }
+
+    outX = inX * (GAME_WIDTH / viewport.Width);
+    outY = inY * (GAME_HEIGHT / viewport.Height);
 }
 
 SDL3Window::SDL3Window() = default;
@@ -284,8 +337,8 @@ void SDL3Window::PumpOSEvents(IInput* sink, bool& outExitRequested)
                 float gameY = 0.0f;
                 float gameDeltaX = 0.0f;
                 float gameDeltaY = 0.0f;
-                ScaleCoordinates(Window, sdlEvent.motion.x, sdlEvent.motion.y, gameX, gameY);
-                ScaleCoordinates(Window, sdlEvent.motion.xrel, sdlEvent.motion.yrel, gameDeltaX, gameDeltaY);
+                ScaleAbsoluteCoordinates(Window, sdlEvent.motion.x, sdlEvent.motion.y, gameX, gameY);
+                ScaleRelativeCoordinates(Window, sdlEvent.motion.xrel, sdlEvent.motion.yrel, gameDeltaX, gameDeltaY);
                 sink->OnMouseMovement(gameX, gameY, gameDeltaX, gameDeltaY);
                 break;
             }
@@ -295,7 +348,7 @@ void SDL3Window::PumpOSEvents(IInput* sink, bool& outExitRequested)
             {
                 float gameX = 0.0f;
                 float gameY = 0.0f;
-                ScaleCoordinates(Window, sdlEvent.button.x, sdlEvent.button.y, gameX, gameY);
+                ScaleAbsoluteCoordinates(Window, sdlEvent.button.x, sdlEvent.button.y, gameX, gameY);
                 sink->OnMouseButton(static_cast<int>(sdlEvent.button.button),
                                     sdlEvent.type == SDL_EVENT_MOUSE_BUTTON_DOWN,
                                     gameX,
