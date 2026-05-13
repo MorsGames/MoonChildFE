@@ -189,6 +189,24 @@ void SDL3Window::DisplaySetFullscreen(bool enabled)
     SDL_SetWindowFullscreen(Window, enabled);
 }
 
+void SDL3Window::SetCursorVisibility(bool visible)
+{
+    if (RelativeMouseMode)
+    {
+        return;
+    }
+
+    const bool isFullscreen = (SDL_GetWindowFlags(Window) & SDL_WINDOW_FULLSCREEN) != 0;
+    if (!isFullscreen || visible)
+    {
+        SDL_ShowCursor();
+    }
+    else
+    {
+        SDL_HideCursor();
+    }
+}
+
 void SDL3Window::SetRelativeMouseMode(bool enabled)
 {
     if (RelativeMouseMode == enabled)
@@ -199,10 +217,6 @@ void SDL3Window::SetRelativeMouseMode(bool enabled)
     if (SDL_SetWindowRelativeMouseMode(Window, enabled))
     {
         RelativeMouseMode = enabled;
-        if (!RelativeMouseMode && (SDL_GetWindowFlags(Window) & SDL_WINDOW_FULLSCREEN) == 0)
-        {
-            SDL_ShowCursor();
-        }
     }
 }
 
@@ -292,17 +306,12 @@ void SDL3Window::PumpOSEvents(IInput* sink, bool& outExitRequested)
         {
             case SDL_EVENT_WINDOW_ENTER_FULLSCREEN:
             {
-                SDL_HideCursor();
                 DisplayBridge::NotifyFullscreenChange(1);
                 break;
             }
 
             case SDL_EVENT_WINDOW_LEAVE_FULLSCREEN:
             {
-                if (!RelativeMouseMode)
-                {
-                    SDL_ShowCursor();
-                }
                 DisplayBridge::NotifyFullscreenChange(0);
                 break;
             }

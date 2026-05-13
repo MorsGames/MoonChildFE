@@ -14,5 +14,6 @@ namespace DisplayBridge
     void NotifyFullscreenChange(int enabled);
 
     void SetFullscreen(int enabled);
+    void SetCursorVisibility(int enabled);
     void SetVSync(int enabled);
 }

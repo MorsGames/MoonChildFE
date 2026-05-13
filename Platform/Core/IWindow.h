@@ -19,6 +19,7 @@ public:
     virtual WindowSize GetPixelSize() const = 0;
 
     virtual void DisplaySetFullscreen(bool enabled) = 0;
+    virtual void SetCursorVisibility(bool visible) = 0;
     virtual void SetRelativeMouseMode(bool enabled) = 0;
 
     virtual void PumpOSEvents(IInput* sink, bool& outExitRequested) = 0;

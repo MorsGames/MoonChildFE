@@ -40,6 +40,11 @@ namespace DisplayBridge
         WindowBackend->DisplaySetFullscreen(enabled != 0);
     }
 
+    void SetCursorVisibility(int enabled)
+    {
+        WindowBackend->SetCursorVisibility(enabled != 0);
+    }
+
     void SetVSync(int enabled)
     {
         RendererBackend->DisplaySetVSync(enabled != 0);

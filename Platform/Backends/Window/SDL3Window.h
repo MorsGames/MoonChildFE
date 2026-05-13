@@ -25,6 +25,7 @@ public:
     SDL_Window* GetNativeWindow() const { return Window; }
 
     void DisplaySetFullscreen(bool enabled) override;
+    void SetCursorVisibility(bool visible) override;
     void SetRelativeMouseMode(bool enabled) override;
 
     void PumpOSEvents(IInput* sink, bool& outExitRequested) override;
