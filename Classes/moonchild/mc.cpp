@@ -577,11 +577,18 @@ char *easiershoot_off     = " EASIER SHOOT : OFF ";
 
 MENU_ITEM menu12[] =
 {
+#ifdef MOONCHILD_DESKTOP_MODE
   {  4, menuf121, "        KEYS        "},
   {  6, menuf122, "+      VIDEO        "},
   {  8, menuf123, "+      AUDIO        "},
   { 10, menuf124, "        GAME        "},
   { 12, menuf125, "=      RETURN       "},
+#else
+  {  5, menuf122, "+      VIDEO        "},
+  {  7, menuf123, "+      AUDIO        "},
+  {  9, menuf124, "        GAME        "},
+  { 11, menuf125, "=      RETURN       "},
+#endif
   { 0,0,0}
 };
 
@@ -637,9 +644,9 @@ MENU_ITEM menu122[] =
   {   9, menuf1223, easyvisontxt },
   {  11, menuf1224, "=      RETURN       "},
 #else
-  {   5, menuf1222, gamespeedmenu_vs },
-  {   7, menuf1223, easyvisontxt },
-  {   9, menuf1224, "=      RETURN       "},
+  {   6, menuf1222, gamespeedmenu_vs },
+  {   8, menuf1223, easyvisontxt },
+  {   10, menuf1224, "=      RETURN       "},
 #endif
   { 0,0,0}
 };
@@ -7550,7 +7557,12 @@ void menuf1223(void)
 void menuf1224(void)
 {
   menupoint = menu12;
-  start_afterbuilditem = 1;    // after rebuild start at second item instead of top one!
+  start_afterbuilditem =
+#ifdef MOONCHILD_DESKTOP_MODE
+      1;
+#else
+      0;
+#endif
   menuleavefunc = (HEARTBEAT_FN) MC_buildmenu;
 };
 
@@ -7619,7 +7631,12 @@ void menuf1233(void)
 void menuf1234(void)
 {
   menupoint = menu12;
-  start_afterbuilditem = 2;
+  start_afterbuilditem =
+#ifdef MOONCHILD_DESKTOP_MODE
+      2;
+#else
+      1;
+#endif
   menuleavefunc = (HEARTBEAT_FN) MC_buildmenu;
 };
 
@@ -7659,7 +7676,12 @@ void menuf1243(void)
 void menuf1244(void)
 {
   menupoint = menu12;
-  start_afterbuilditem = 3;
+  start_afterbuilditem =
+#ifdef MOONCHILD_DESKTOP_MODE
+      3;
+#else
+      2;
+#endif
   menuleavefunc = (HEARTBEAT_FN) MC_buildmenu;
 };
 
