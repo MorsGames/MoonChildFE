@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.22.1)
 
 project(MoonChildFE LANGUAGES C CXX VERSION 1.1.0)
+set(MOONCHILD_OUTPUT_NAME "Moon Child FE")
 set(EXECUTABLE_NAME MoonChildFE)
 if(ANDROID)
     set(EXECUTABLE_NAME main)
@@ -342,6 +343,14 @@ elseif(WIN32)
     add_executable(${EXECUTABLE_NAME} WIN32 ${MOONCHILD_SOURCES})
 else()
     add_executable(${EXECUTABLE_NAME} MACOSX_BUNDLE ${MOONCHILD_SOURCES})
+endif()
+
+if(NOT ANDROID)
+    if(EMSCRIPTEN)
+        set_target_properties(${EXECUTABLE_NAME} PROPERTIES OUTPUT_NAME "${EXECUTABLE_NAME}")
+    else()
+        set_target_properties(${EXECUTABLE_NAME} PROPERTIES OUTPUT_NAME "${MOONCHILD_OUTPUT_NAME}")
+    endif()
 endif()
 
 target_include_directories(${EXECUTABLE_NAME} PRIVATE

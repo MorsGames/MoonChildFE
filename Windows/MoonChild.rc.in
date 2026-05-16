@@ -16,9 +16,9 @@ BEGIN
             VALUE "CompanyName", "Mors"
             VALUE "FileDescription", "You've got the power to be his friend!"
             VALUE "FileVersion", "@PROJECT_VERSION@"
-            VALUE "InternalName", ""
+            VALUE "InternalName", "@MOONCHILD_OUTPUT_NAME@"
             VALUE "LegalCopyright", ""
-            VALUE "OriginalFilename", ""
+            VALUE "OriginalFilename", "@MOONCHILD_OUTPUT_NAME@.exe"
             VALUE "ProductName", "Moon Child Friend Edition"
             VALUE "ProductVersion", "@PROJECT_VERSION@"
         END

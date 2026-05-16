@@ -138,22 +138,13 @@ jobs:
 
     - name: Create macOS DMG
       if: runner.os == 'macOS'
-      run: create-dmg --background macOS/dmgBG.png --volname "Moon Child FE" --window-size 640 375 --icon-size 75  --icon "MoonChildFE.app" 200 275 --app-drop-link 430 275 --hide-extension "MoonChildFE.app" Bin/${{ matrix.artifact_platform }}/Release/MoonChildFE-macOSUniversal.dmg Bin/${{ matrix.artifact_platform }}/Release/
+      run: create-dmg --background macOS/dmgBG.png --volname "Moon Child FE" --window-size 640 375 --icon-size 75  --icon "Moon Child FE.app" 200 275 --app-drop-link 430 275 --hide-extension "Moon Child FE.app" Bin/${{ matrix.artifact_platform }}/Release/MoonChildFE-macOSUniversal.dmg Bin/${{ matrix.artifact_platform }}/Release/
 
-    - name: Upload the CI artifact (non-macOS)
+    - name: Upload the CI artifact
       uses: actions/upload-artifact@v4
-      if: runner.os != 'macOS'
       with:
         name: MoonChildFE-${{ matrix.artifact_platform }}
-        path: Bin/${{ matrix.artifact_platform }}/Release/
-        if-no-files-found: error
-    
-    - name: Upload the CI artifact (macOS)
-      uses: actions/upload-artifact@v4
-      if: runner.os == 'macOS'
-      with:
-        name: MoonChildFE-${{ matrix.artifact_platform }}
-        path: Bin/${{ matrix.artifact_platform }}/Release/MoonChildFE-macOSUniversal.dmg
+        path: ${{ runner.os == 'macOS' && format('Bin/{0}/Release/MoonChildFE-macOSUniversal.dmg', matrix.artifact_platform) || format('Bin/{0}/Release/', matrix.artifact_platform) }}
         if-no-files-found: error
 
   release:
@@ -196,7 +187,7 @@ jobs:
         (cd assets/WindowsX64 && zip -r "$GITHUB_WORKSPACE/dist/MoonChildFE-WindowsX64.zip" .)
         (cd assets/WindowsX86 && zip -r "$GITHUB_WORKSPACE/dist/MoonChildFE-WindowsX86.zip" .)
         (cd assets/LinuxX64 && tar -czf "$GITHUB_WORKSPACE/dist/MoonChildFE-LinuxX64.tar.gz" .)
-        (cd assets/macosUniversal && cp MoonChildFE-macOSUniversal.dmg "$GITHUB_WORKSPACE/dist/MoonChildFE-macOSUniversal.dmg" .)
+        cp assets/macOSUniversal/MoonChildFE-macOSUniversal.dmg "$GITHUB_WORKSPACE/dist/"
 
     - name: Create the GitHub Release
       uses: softprops/action-gh-release@v2
