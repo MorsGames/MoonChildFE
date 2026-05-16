@@ -6,6 +6,7 @@
 #include <objects.hpp>
 #include <prefs.hpp>
 #include <hoi.hpp>
+#include <PlatformConfig.h>
 
 
 #define WORD short
@@ -22,7 +23,19 @@ void map_build(VIEWPORT *player)
 
   video->clear(0);
   
-  for (x=1; x<41; x++)
+  /* Widescreen support: Extended tile range for 16:9 aspect ratio */
+  /* 
+   * Original 4:3 (640px): 20 visible columns at 32px each
+   * Widescreen 16:9 (854px or 864px): ~27 visible columns
+   * Adding buffer columns for smooth scrolling on both sides
+   */
+#define MC_BASE_COLUMNS 20
+#define MC_WIDESCREEN_COLUMNS 27
+#define MC_COLUMNS_BUFFER 2  /* Extra columns on each side for scrolling */
+#define MC_MAX_COLUMNS (MC_WIDESCREEN_COLUMNS + (2 * MC_COLUMNS_BUFFER))
+  
+  /* Start from -buffer to allow left edge scrolling */
+  for (x = 1 - MC_COLUMNS_BUFFER; x < (1 + MC_BASE_COLUMNS + MC_COLUMNS_BUFFER); x++)
     {
       blitpatcolumn(player, x);
     }
@@ -145,6 +158,11 @@ void scrolling(VIEWPORT *player)
 {
   INT16 spdx;
   INT16 spdy;
+  
+  /* Widescreen support: Dynamic camera center for 16:9 */
+  /* Original hardcoded 320 was based on 640/2 - now uses prefs->screenwidth/2 */
+  INT16 screen_center_x = prefs->screenwidth / 2;
+  INT16 screen_center_y = prefs->screenheight / 2;
 
   if (world != 2)
     {
@@ -161,10 +179,11 @@ void scrolling(VIEWPORT *player)
   }
       else
   {
-    spdx = ((player->camx-320) - player->worldx)>>4;
+    /* Widescreen: Use dynamic center instead of hardcoded 320 */
+    spdx = ((player->camx - screen_center_x) - player->worldx)>>4;
     if (spdx == 0)
       {
-        if ((player->camx-320) != player->worldx)
+        if ((player->camx - screen_center_x) != player->worldx)
     {
       spdx = 1;
     }
@@ -172,10 +191,11 @@ void scrolling(VIEWPORT *player)
     if (spdx >  player->maxspd) spdx =  player->maxspd;
     if (spdx < -player->maxspd) spdx = -player->maxspd;
     
-    spdy = ((player->camy-240) - player->worldy)>>4;
+    /* Widescreen: Use dynamic center instead of hardcoded 240 */
+    spdy = ((player->camy - screen_center_y) - player->worldy)>>4;
     if (spdy == 0)
       {
-        if ((player->camy-240) != player->worldy)
+        if ((player->camy - screen_center_y) != player->worldy)
     {
       spdy = 1;
     }
@@ -262,15 +282,20 @@ void scrolling(VIEWPORT *player)
       
     }
   
+  /* Widescreen support: Allow negative camera positions to show left edge padding */
+  /* Original 4:3 clamp was: player->worldx < 32 */
+  /* Widescreen clamp allows: player->worldx < -GAME_FRAMEBUFFER_WIDESCREEN_PADDING */
+  
   /* xcoord */
   if (player->worldx > (player->curmap->mapsizex - prefs->screenwidth-64))
     {
       player->worldx = (player->curmap->mapsizex - prefs->screenwidth-64);
     }
   
-  if (player->worldx < 32) 
+  /* Widescreen: Allow camera to slide left to show widescreen padding */
+  if (player->worldx < -GAME_FRAMEBUFFER_WIDESCREEN_PADDING) 
     {
-      player->worldx = 32;
+      player->worldx = -GAME_FRAMEBUFFER_WIDESCREEN_PADDING;
     }
   
   /* ycoord */
@@ -792,6 +817,15 @@ void update(VIEWPORT *player)
   sm_x = (player->worldx+player->quakex) &31;
   sm_y = (player->worldy+player->shakey+player->quakey) &31;
 
+  /* Widescreen support: Use dynamic screen bounds from prefs */
+  INT16 screen_width = prefs->screenwidth;
+  INT16 screen_height = prefs->screenheight;
+  
+  /* Extended tile range for widescreen: x ranges from -5 to 26 (instead of -1 to 22) */
+#define MC_WIDESCREEN_X_START -5
+#define MC_WIDESCREEN_X_END 26
+#define MC_WIDESCREEN_Y_END 18
+
   if ( mouserbut && editflg )  // display editpage
   {
     for (y= 0; y<17; y++)
@@ -816,8 +850,9 @@ void update(VIEWPORT *player)
           fex = x*32+32-sm_x;
           fey = y*32+32-sm_y;
 
-          if (fex >= 640) fex = 640;
-          if (fey >= 480) fey = 480;
+          /* Widescreen support: Use dynamic bounds */
+          if (fex >= screen_width) fex = screen_width;
+          if (fey >= screen_height) fey = screen_height;
 
           if (fsx >= -32 && fsx < 0)
           {
@@ -831,7 +866,8 @@ void update(VIEWPORT *player)
             fsy = 0;
           }
 
-          if (fsx < 640 && fsy < 480 && fex >= 0 && fey >= 0)
+          /* Widescreen: Blitter handles horizontal offset internally */
+          if (fex >= 0 && fey >= 0)
           {
             para->draw_nokey(*player1.loadedmap->blitbuf, sx, sy, fsx, fsy, fex, fey);
           }
@@ -844,10 +880,12 @@ void update(VIEWPORT *player)
           {
             if (transmap[curpat]==1)  //semi transparent
             {
+              /* Widescreen: Blitter handles horizontal offset internally */
               srcblitbuf->draw(*player1.loadedmap->blitbuf, x*32-sm_x, y*32-sm_y, 0, 0, 32, 32);
             }
             else
             {
+              /* Widescreen: Blitter handles horizontal offset internally */
               srcblitbuf->draw_nokey(*player1.loadedmap->blitbuf, x*32-sm_x, y*32-sm_y, 0, 0, 32, 32);
             }
           }
@@ -857,32 +895,47 @@ void update(VIEWPORT *player)
     }
   }
   else   // in game!
-  {
-    for (y= -1; y<17; y++)
     {
-      for (x=-1; x<22; x++)
+      INT16 map_width_tiles = player->curmap->mapsizex / 32;
+      
+      /* Widescreen: Apply +112px camera offset to shift gameplay into center of widescreen */
+      INT16 widescreen_cam_offset = GAME_FRAMEBUFFER_WIDESCREEN_PADDING;  // +112
+      
+      for (y= -1; y<MC_WIDESCREEN_Y_END; y++)
       {
-        UINT16 curpat;
-        Cblitbuf *srcblitbuf;
-
-        curpat = player->curmap->map[((y+of_y)*player->curmap->mapsizex/32)+(x+of_x)];
-	curpat &= 0x7fff;
-        player->curmap->map[((y+of_y)*player->curmap->mapsizex/32)+(x+of_x)] = curpat;
+        for (x=MC_WIDESCREEN_X_START; x<MC_WIDESCREEN_X_END; x++)
+        {
+          UINT16 curpat;
+          Cblitbuf *srcblitbuf;
+          INT16 col_index = (x + of_x);
+          
+          /* Widescreen safety: Skip tiles that would read past level bounds */
+          if (col_index < 0 || col_index >= map_width_tiles)
+          {
+            curpat = 0;  // Empty sky tile for out-of-bounds columns
+          }
+          else
+          {
+            curpat = player->curmap->map[((y+of_y)*player->curmap->mapsizex/32)+col_index];
+            curpat &= 0x7fff;
+            player->curmap->map[((y+of_y)*player->curmap->mapsizex/32)+col_index] = curpat;
+          }
           if(curpat>=nrofpats) curpat=0;
 
         if (transmap[curpat]!=2)
         {
           INT16 sx,sy,fsx,fsy,fex,fey;
 
-          sx  = x*32-sm_x;
+          sx  = x*32-sm_x + widescreen_cam_offset;
           sy  = y*32-sm_y;
-          fsx = x*32-sm_x;
+          fsx = x*32-sm_x + widescreen_cam_offset;
           fsy = y*32-sm_y;
-          fex = x*32+32-sm_x;
+          fex = x*32+32-sm_x + widescreen_cam_offset;
           fey = y*32+32-sm_y;
 
-          if (fex >= 640) fex = 640;
-          if (fey >= 480) fey = 480;
+          /* Widescreen support: Use dynamic bounds */
+          if (fex >= screen_width) fex = screen_width;
+          if (fey >= screen_height) fey = screen_height;
 
           if (fsx >= -32 && fsx < 0)
           {
@@ -896,7 +949,8 @@ void update(VIEWPORT *player)
             fsy = 0;
           }
 
-          if (fsx < 640 && fsy < 480 && fex >= 0 && fey >= 0)
+          /* Widescreen: Camera offset applied, tiles shifted to fill left edge */
+          if (fex >= 0 && fey >= 0)
           {
             para->draw_nokey(*player1.loadedmap->blitbuf, sx, sy, fsx, fsy, fex, fey);
           }
@@ -910,11 +964,13 @@ void update(VIEWPORT *player)
           {
             if (transmap[curpat]==1) // semi transparent
             {
-              srcblitbuf->draw(*player1.loadedmap->blitbuf, x*32-sm_x, y*32-sm_y, 0, 0, 32, 32);
+              /* Widescreen: Camera offset shifts tiles to fill widescreen viewport */
+              srcblitbuf->draw(*player1.loadedmap->blitbuf, x*32-sm_x + widescreen_cam_offset, y*32-sm_y, 0, 0, 32, 32);
             }
             else
             {
-              srcblitbuf->draw_nokey(*player1.loadedmap->blitbuf, x*32-sm_x, y*32-sm_y, 0, 0, 32, 32);
+              /* Widescreen: Camera offset shifts tiles to fill widescreen viewport */
+              srcblitbuf->draw_nokey(*player1.loadedmap->blitbuf, x*32-sm_x + widescreen_cam_offset, y*32-sm_y, 0, 0, 32, 32);
             }
           }
         }
@@ -1137,11 +1193,14 @@ void rebuild(VIEWPORT *player)
 //  toggle ^= 1;
 //  if (toggle)
 //    {
-      blitpatcolumn(player, 41);
+      /* Widescreen: Use dynamic column count based on screenwidth */
+      INT16 screen_width = prefs->screenwidth;
+      INT16 max_col = (screen_width / 32) + 3;  /* +3 for buffer columns */
+      blitpatcolumn(player, max_col);
 //    }
 //  else
 //    {
-      blitpatcolumn(player, 1);
+      blitpatcolumn(player, 1 - MC_COLUMNS_BUFFER);
 //    }
 
 #if 0

@@ -7,6 +7,13 @@
 #include <sokoban.hpp>
 #include <boss.hpp>
 #include <sound.hpp>
+#include <PlatformConfig.h>
+
+/* Widescreen support: HUD anchoring offset */
+/* Original 4:3: HUD at X=70 | Widescreen: shift to align with new left edge */
+#define MC_WIDESCREEN_HUD_OFFSET_X (-112)  /* Offset from original 640-based positioning */
+#define MC_WIDESCREEN_HUD_OFFSET_Y 0        /* Y stays same for 480 height */
+#define MC_HUD_BASE_X 70
 
 // 7x9
 static const char* smallfont[] =
@@ -223,6 +230,14 @@ void score_display(VIEWPORT *player)
   UINT16 holdcnt;
   static UINT16 diamondknip;
 
+  /* Widescreen support: Calculate HUD offset based on actual screen width */
+  INT16 hudOffsetX = 0;
+  if (prefs != nullptr && prefs->screenwidth > MC_HUD_BASE_X + 400)
+  {
+    /* Widescreen detected: center HUD or keep left-aligned with padding */
+    hudOffsetX = (prefs->screenwidth - GAME_FRAMEBUFFER_WIDTH) / 2;
+  }
+
   holdcnt = 0;
 
   if (scoreshift) scoreshift--;
@@ -265,7 +280,8 @@ void score_display(VIEWPORT *player)
 
 //  if (world !=3)
     {
-      frame->draw(*player->loadedmap->blitbuf,70 + (0*40) + ((sinus512[xcnt]*10)>>10) - scoreshift, 414 + ((sinus512[ycnt]*10)>>10) );
+      /* Widescreen: Apply HUD offset */
+      frame->draw(*player->loadedmap->blitbuf, hudOffsetX + 70 + (0*40) + ((sinus512[xcnt]*10)>>10) - scoreshift, 414 + ((sinus512[ycnt]*10)>>10) );
     }
 
 
@@ -276,9 +292,10 @@ void score_display(VIEWPORT *player)
 
   frame = anim_setsequence(orgheart, 0, SEQ_FORCE);
   frame = anim_forceframe (orgheart, 16 - (player->energy >> 1));
-  frame->draw(*player->loadedmap->blitbuf,70 + (1*40) + ((sinus512[xcnt]*10)>>10) - scoreshift, 414 + ((sinus512[ycnt]*10)>>10) );
+  /* Widescreen: Apply HUD offset */
+  frame->draw(*player->loadedmap->blitbuf, hudOffsetX + 70 + (1*40) + ((sinus512[xcnt]*10)>>10) - scoreshift, 414 + ((sinus512[ycnt]*10)>>10) );
 
-  scoreposhold[holdcnt   ] = 70 + (1*40) + ((sinus512[xcnt]*10)>>10) - scoreshift + 8;
+  scoreposhold[holdcnt   ] = hudOffsetX + 70 + (1*40) + ((sinus512[xcnt]*10)>>10) - scoreshift + 8;
   scoreposhold[holdcnt+1 ] = 414 + ((sinus512[ycnt]*10)>>10) + 8;
   holdcnt+=2;
 
@@ -326,7 +343,7 @@ void score_display(VIEWPORT *player)
 	frame = anim_forceframe (orgdiamond, 1);
       }
 
-    scoreposhold[holdcnt   ] = 70 + (i*40) + ((sinus512[xcnt]*10)>>10);
+    scoreposhold[holdcnt   ] = hudOffsetX + 70 + (i*40) + ((sinus512[xcnt]*10)>>10);
     scoreposhold[holdcnt+1 ] = 414 + ((sinus512[ycnt]*10)>>10) + scoreshift;
     holdcnt+=2;
 
@@ -334,7 +351,8 @@ void score_display(VIEWPORT *player)
       {
 	if (world !=3)
 	  {
-	    frame->draw(*player->loadedmap->blitbuf,70 + (i*40) + ((sinus512[xcnt]*10)>>10), 414 + ((sinus512[ycnt]*10)>>10) + scoreshift );
+	    /* Widescreen: Apply HUD offset */
+	    frame->draw(*player->loadedmap->blitbuf, hudOffsetX + 70 + (i*40) + ((sinus512[xcnt]*10)>>10), 414 + ((sinus512[ycnt]*10)>>10) + scoreshift );
 	  }
       }
     else
@@ -348,7 +366,8 @@ void score_display(VIEWPORT *player)
 	    frame = anim_forceframe (orgdiamond, 1);
 	    if (world !=3)
 	      {
-		frame->draw(*player->loadedmap->blitbuf,70 + (i*40) + ((sinus512[xcnt]*10)>>10), 414 + ((sinus512[ycnt]*10)>>10) + scoreshift );
+		/* Widescreen: Apply HUD offset */
+		frame->draw(*player->loadedmap->blitbuf, hudOffsetX + 70 + (i*40) + ((sinus512[xcnt]*10)>>10), 414 + ((sinus512[ycnt]*10)>>10) + scoreshift );
 	      }
 	  }
 	else if ((i-3) == (((diamondknip-4)&31)/4))
@@ -356,7 +375,8 @@ void score_display(VIEWPORT *player)
 	    frame = anim_forceframe (orgdiamond, 1);
 	    if (world !=3)
 	      {
-		frame->draw(*player->loadedmap->blitbuf,70 + (i*40) + ((sinus512[xcnt]*10)>>10), 414 + ((sinus512[ycnt]*10)>>10) + scoreshift );
+		/* Widescreen: Apply HUD offset */
+		frame->draw(*player->loadedmap->blitbuf, hudOffsetX + 70 + (i*40) + ((sinus512[xcnt]*10)>>10), 414 + ((sinus512[ycnt]*10)>>10) + scoreshift );
 	      }
 	  }
 	else
@@ -364,7 +384,8 @@ void score_display(VIEWPORT *player)
 	    frame = anim_forceframe (orgdiamond, 0);
 	    if (world !=3)
 	      {
-		frame->draw(*player->loadedmap->blitbuf,70 + (i*40) + ((sinus512[xcnt]*10)>>10), 414 + ((sinus512[ycnt]*10)>>10) + scoreshift );
+		/* Widescreen: Apply HUD offset */
+		frame->draw(*player->loadedmap->blitbuf, hudOffsetX + 70 + (i*40) + ((sinus512[xcnt]*10)>>10), 414 + ((sinus512[ycnt]*10)>>10) + scoreshift );
 	      }
 	  }
       }
@@ -445,9 +466,10 @@ void score_display(VIEWPORT *player)
   frame = anim_forceframe (orgcolormond, player->newlife/2);
   if (world !=3)
     {
-      frame->draw(*player->loadedmap->blitbuf,70 + (11*40) + ((sinus512[xcnt]*10)>>10) + scoreshift, 414 + ((sinus512[ycnt]*10)>>10) );
+      /* Widescreen: Apply HUD offset */
+      frame->draw(*player->loadedmap->blitbuf, hudOffsetX + 70 + (11*40) + ((sinus512[xcnt]*10)>>10) + scoreshift, 414 + ((sinus512[ycnt]*10)>>10) );
     }
-  scoreposhold[holdcnt   ] = 70 + (11*40) + ((sinus512[xcnt]*10)>>10) + scoreshift+8;
+  scoreposhold[holdcnt   ] = hudOffsetX + 70 + (11*40) + ((sinus512[xcnt]*10)>>10) + scoreshift+8;
   scoreposhold[holdcnt+1 ] = 414 + ((sinus512[ycnt]*10)>>10)+8;
   holdcnt+=2;
 

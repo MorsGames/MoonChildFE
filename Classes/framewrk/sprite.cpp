@@ -1,5 +1,8 @@
 #include "frm_int.hpp"
 #include <stdlib.h>
+
+/* Widescreen support */
+#include <PlatformConfig.h>
 Cspr_frame::Cspr_frame(COMP_SPRITE *dc, UINT16 w, UINT16 h, INT16 hx, INT16 hy)
 {
 }

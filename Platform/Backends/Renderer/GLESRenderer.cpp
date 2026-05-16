@@ -14,8 +14,12 @@ static const char* VERTEX_SRC =
     "attribute vec2 aPosition;\n"
     "attribute vec2 aTexCoord;\n"
     "varying vec2 vTexCoord;\n"
+    "uniform vec2 uWidescreenOffset;  /* Offset to center 4:3 content in widescreen */\n"
     "void main() {\n"
-    "    gl_Position = vec4(aPosition, 0.0, 1.0);\n"
+    "    /* Widescreen: Shift the position to center the original 640 content */\n"
+    "    vec2 shiftedPos = aPosition;\n"
+    "    shiftedPos.x = aPosition.x + uWidescreenOffset.x;\n"
+    "    gl_Position = vec4(shiftedPos, 0.0, 1.0);\n"
     "    vTexCoord = aTexCoord;\n"
     "}\n";
 
@@ -102,6 +106,7 @@ bool GLESRenderer::BuildSharpBilinearProgram()
     LocSource = glGetUniformLocation(Program, "uSource");
     LocSourceSize = glGetUniformLocation(Program, "uSourceSize");
     LocScale = glGetUniformLocation(Program, "uScale");
+    LocWidescreenOffset = glGetUniformLocation(Program, "uWidescreenOffset");
     LocPosition = glGetAttribLocation(Program, "aPosition");
     LocTexCoord = glGetAttribLocation(Program, "aTexCoord");
 
@@ -148,6 +153,10 @@ bool GLESRenderer::Init(IWindow* hostWindow)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    printf("Widescreen: Allocating framebuffer at %dx%d (base: %dx%d + %dx%d padding)\n", 
+           w, h, GAME_FRAMEBUFFER_BASE_WIDTH, GAME_FRAMEBUFFER_BASE_HEIGHT,
+           GAME_FRAMEBUFFER_WIDESCREEN_PADDING, GAME_FRAMEBUFFER_WIDESCREEN_PADDING);
+
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, zeros.data());
 
     if (!BuildSharpBilinearProgram())
@@ -193,6 +202,8 @@ void GLESRenderer::Destroy()
 void GLESRenderer::BeginFrame()
 {
     Surface->MakeCurrent();
+    /* Widescreen: Clear entire framebuffer to black, not just centered portion */
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 }
@@ -227,10 +238,15 @@ void GLESRenderer::DrawFrame(const unsigned char* rgbaPixels, int width, int hei
     const float scaleX = std::max(1, ViewportWidth / width);
     const float scaleY = std::max(1, ViewportHeight / height);
 
+    /* Widescreen: Calculate offset to center 640 content in 864 framebuffer */
+    const float widescreenOffsetX = (GAME_FRAMEBUFFER_WIDTH - GAME_FRAMEBUFFER_BASE_WIDTH) / 
+                                     static_cast<float>(GAME_FRAMEBUFFER_WIDTH);
+
     glUseProgram(Program);
     glUniform1i(LocSource, 0);
     glUniform2f(LocSourceSize, width, height);
     glUniform2f(LocScale, scaleX, scaleY);
+    glUniform2f(LocWidescreenOffset, widescreenOffsetX, 0.0f);
 
     glBindBuffer(GL_ARRAY_BUFFER, VertexBuffer);
     glEnableVertexAttribArray(LocPosition);
