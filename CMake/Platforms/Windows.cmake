@@ -1,5 +1,5 @@
 configure_file(
-    "${CMAKE_SOURCE_DIR}/MoonChild.rc.in"
+    "${CMAKE_SOURCE_DIR}/Windows/MoonChild.rc.in"
     "${CMAKE_CURRENT_BINARY_DIR}/MoonChild.rc"
     @ONLY
 )

@@ -354,6 +354,10 @@ target_include_directories(${EXECUTABLE_NAME} PRIVATE
     ${MOONCHILD_BACKEND_INCLUDES}
 )
 
+target_compile_definitions(${EXECUTABLE_NAME} PRIVATE
+    "MOONCHILD_APP_VERSION_STR=\"${CMAKE_PROJECT_VERSION}\""
+)
+
 # pl_mpeg setup
 if(MOONCHILD_VENDORED_PL_MPEG)
     target_include_directories(${EXECUTABLE_NAME} PRIVATE

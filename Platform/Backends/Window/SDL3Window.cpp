@@ -95,7 +95,7 @@ SDL3Window::~SDL3Window()
 
 bool SDL3Window::Create(const char* title, int width, int height)
 {
-    if (!SDL_SetAppMetadata(title, NULL, NULL))
+    if (!SDL_SetAppMetadata(title, MOONCHILD_APP_VERSION_STR, nullptr))
     {
         printf("SDL set app metadata failed! %s\n", SDL_GetError());
         return false;
@@ -113,7 +113,7 @@ bool SDL3Window::Create(const char* title, int width, int height)
         return false;
     }
 
-    SDL_WindowFlags windowFlags = SDL_WINDOW_RESIZABLE;
+    SDL_WindowFlags windowFlags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY;
     
 #ifdef MOONCHILD_USE_OPENGL
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -184,7 +184,10 @@ void SDL3Window::Destroy()
 WindowSize SDL3Window::GetPixelSize() const
 {
     WindowSize size;
-    SDL_GetWindowSize(Window, &size.Width, &size.Height);
+    if (!SDL_GetWindowSizeInPixels(Window, &size.Width, &size.Height))
+    {
+        SDL_GetWindowSize(Window, &size.Width, &size.Height);
+    }
     return size;
 }
 

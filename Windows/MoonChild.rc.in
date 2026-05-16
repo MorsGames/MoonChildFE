@@ -29,4 +29,4 @@ BEGIN
     END
 END
 
-101 ICON "@CMAKE_SOURCE_DIR@/game.ico"
+101 ICON "@CMAKE_SOURCE_DIR@/Windows/game.ico"

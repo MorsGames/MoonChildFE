@@ -88,10 +88,10 @@ The executable will be end up in the `Bin` folder.
 ### macOS
 
 1. Install the [Xcode Command Line Tools](https://developer.apple.com/documentation/xcode/installing-the-command-line-tools/) and [Homebrew](https://brew.sh/).
-2. Install CMake from Homebrew.
+2. Install CMake and Ninja from Homebrew.
 
 ```bash
-brew install cmake
+brew install cmake ninja
 ```
 
 3. Run the `cd` command, followed by the path of the folder where you want to keep the source code. For example: `cd ~/GitHub`.
@@ -113,7 +113,7 @@ The executable will be end up in the `Bin` folder.
 
 ## Credits
 
-**Source Port Author**: [Mors](https://mors.games)
+**Source Port by**: [Mors](https://mors.games) & Moon Child FE Contributors
 
 **Original Game Code**: [Reinier van Vliet](https://www.proofofconcept.nl)
 
