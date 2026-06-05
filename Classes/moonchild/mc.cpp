@@ -670,8 +670,8 @@ MENU_ITEM menu123[] =
 
 MENU_ITEM menu1243[] =
 {
-  {   5, menuf1241, speedrun_toggle_off },
-  {   7, menuf1242, easiershoot_off },
+  {   5, menuf1242, easiershoot_off },
+  {   7, menuf1241, speedrun_toggle_off },
   {   9, menuf1243, "   RESET PROGRESS   "},
   {  11, menuf1244, "=      RETURN       "},
   { 0,0,0}
@@ -1144,8 +1144,8 @@ void load_options(void)
   menu122[easierSlot].menutext = easiervisualsflg ? easyvisontxt : easyvisofftxt;
   DisplayBridge::SetVSync(gamespeedflg == MC_GAME_SPEED_VSYNC ? 1 : 0);
   menu123[2].menutext = altmenutuneflg ? altmenuontxt : altmenuofftxt;
-  menu1243[0].menutext = speedrun_state.running ? speedrun_toggle_on : speedrun_toggle_off;
-  menu1243[1].menutext = easiershootflg ? easiershoot_on : easiershoot_off;
+  menu1243[0].menutext = easiershootflg ? easiershoot_on : easiershoot_off;
+  menu1243[1].menutext = speedrun_state.running ? speedrun_toggle_on : speedrun_toggle_off;
   menu1243_alt[0].menutext = speedrun_state.running ? speedrun_toggle_on : speedrun_toggle_off;
 }
 
@@ -7649,18 +7649,18 @@ void menuf124(void)
 void menuf1241(void)
 {
   speedrun_state.running = !speedrun_state.running;
-  menu1243[0].menutext = speedrun_state.running ? speedrun_toggle_on : speedrun_toggle_off;
+  menu1243[1].menutext = speedrun_state.running ? speedrun_toggle_on : speedrun_toggle_off;
   menu1243_alt[0].menutext = speedrun_state.running ? speedrun_toggle_on : speedrun_toggle_off;
   menupoint = speedrun_state.running ? menu1243_alt : menu1243;
 
-  start_afterbuilditem = menuitem;
+  start_afterbuilditem = speedrun_state.running ? 0 : 1;
   menuleavefunc = (HEARTBEAT_FN) MC_buildmenu;
 }
 
 void menuf1242(void)
 {
   easiershootflg ^= 1;
-  menu1243[1].menutext = easiershootflg ? easiershoot_on : easiershoot_off;
+  menu1243[0].menutext = easiershootflg ? easiershoot_on : easiershoot_off;
 
   start_afterbuilditem = menuitem;
   menuleavefunc = (HEARTBEAT_FN) MC_buildmenu;
