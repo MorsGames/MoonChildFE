@@ -943,13 +943,8 @@ HEARTBEAT_FN framework_InitGame(Cvideo *newvideo, Caudio *newaudio, Ctimer *newt
 
 // CONFIGURE LEVEL
 
-#ifdef EDITOR
-  configure_level(4,1);   // numbers starting from 1 (not 0)
-#else
-  configure_level(1,1);   // numbers starting from 1 (not 0)
-#endif
+configure_level(1,1);   // numbers starting from 1 (not 0)
 
-//4,1
 
 
 
