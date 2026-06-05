@@ -15,7 +15,7 @@
 	<string>${MACOSX_BUNDLE_ICON_FILE}</string>
 
 	<key>CFBundleIconName</key>
-	<string>MC ICN TAHOE</string>
+	<string>MoonChildFE</string>
 
 	<key>CFBundleIdentifier</key>
 	<string>${MACOSX_BUNDLE_GUI_IDENTIFIER}</string>
