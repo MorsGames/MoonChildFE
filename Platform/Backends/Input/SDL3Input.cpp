@@ -175,10 +175,7 @@ void SDL3Input::OnMouseMovement(float x, float y, float xrel, float yrel)
     MouseDeltaRemainderX = deltaX - static_cast<float>(wholeDeltaX);
     MouseDeltaRemainderY = deltaY - static_cast<float>(wholeDeltaY);
 
-    InputBridge::OnMouseMovement(static_cast<int>(x),
-                                 static_cast<int>(y),
-                                 wholeDeltaX,
-                                 wholeDeltaY);
+    InputBridge::OnMouseMovement(static_cast<int>(x), static_cast<int>(y), wholeDeltaX, wholeDeltaY);
 }
 
 void SDL3Input::OnMouseButton(int button, bool isDown, float x, float y)

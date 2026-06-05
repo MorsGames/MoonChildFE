@@ -34,6 +34,7 @@ namespace InputBridge
     static int KeyRefCount[256] = {};
     static std::unordered_map<uint32_t, ActiveSource> ActiveSources;
     static std::deque<InputEvent> Queue;
+    static int MouseIdleFrames = 999999;
 
     static bool IsValidGameKey(int gameKeyCode)
     {
@@ -52,6 +53,7 @@ namespace InputBridge
         mouserbut = 0;
         mouselchng = 0;
         mouserchng = 0;
+        MouseIdleFrames = 999999;
     }
 
     static void ClearState()
@@ -99,12 +101,18 @@ namespace InputBridge
         g_MouseFlg = 0;
         g_MouseDeltaX += deltaX;
         g_MouseDeltaY += deltaY;
+
+        if (deltaX != 0 || deltaY != 0)
+        {
+            MouseIdleFrames = 0;
+        }
     }
 
     void OnMouseButton(int button, bool isDown, int x, int y)
     {
         g_MouseXCurrent = x;
         g_MouseYCurrent = y;
+        MouseIdleFrames = 0;
 
         switch (button)
         {
@@ -153,6 +161,11 @@ namespace InputBridge
             {
                 SubmitEvent(inputEvent);
             }
+        }
+
+        if (MouseIdleFrames < 999999)
+        {
+            MouseIdleFrames++;
         }
 
         QueueRepeats();
@@ -242,5 +255,10 @@ namespace InputBridge
         out = Queue.front();
         Queue.pop_front();
         return true;
+    }
+
+    int GetMouseIdleFrames()
+    {
+        return MouseIdleFrames;
     }
 }

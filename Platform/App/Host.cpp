@@ -90,8 +90,7 @@ bool Host::Initialize()
     AudioBridge::Attach(Backends.Audio.get());
     DisplayBridge::Attach(Backends.Window.get(), Backends.Renderer.get());
     InputBridge::Attach(Backends.Input.get());
-    MovieBridge::Attach(Backends.Audio.get(),
-        PixelBuffer.get(), GAME_FRAMEBUFFER_WIDTH, GAME_FRAMEBUFFER_HEIGHT);
+    MovieBridge::Attach(Backends.Audio.get(), PixelBuffer.get(), GAME_FRAMEBUFFER_WIDTH, GAME_FRAMEBUFFER_HEIGHT);
 
     if (!InitializeFramework())
     {
@@ -152,7 +151,10 @@ void Host::RunFrame()
             (heartbeat == prepPuzzleHeartbeat || heartbeat == prepTitleHeartbeat) || 
             (editflg != 0 || ingameflg == 0 || puzzleactiveflg != 0)
         );
-    DisplayBridge::SetCursorVisibility(showCursor);
+
+    const int fps = (gamespeedflg == 1u) ? 50 : 60;
+    const bool shouldShow = showCursor && (InputBridge::GetMouseIdleFrames() < 3 * fps);
+    DisplayBridge::SetCursorVisibility(shouldShow);
 
     if (exitRequested)
     {

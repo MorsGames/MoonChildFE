@@ -13,4 +13,6 @@ namespace InputBridge
 
     void Tick();
     bool PollNext(InputEvent& out);
+
+    int GetMouseIdleFrames();
 }
