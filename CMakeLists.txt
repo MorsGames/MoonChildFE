@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22.1)
 
-project(MoonChildFE LANGUAGES C CXX VERSION 1.1.0)
+project(MoonChildFE LANGUAGES C CXX VERSION 1.1.1)
 set(MOONCHILD_OUTPUT_NAME "Moon Child FE")
 set(EXECUTABLE_NAME MoonChildFE)
 if(ANDROID)
