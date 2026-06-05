@@ -15,7 +15,7 @@
 
 extern const char* FullPath(const char* file);
 
-static constexpr int MIX_FREQUENCY = 48000;
+static constexpr int MIX_FREQUENCY = 44100;
 static constexpr int MIX_CHANNELS  = 2;
 static constexpr SDL_AudioFormat MIX_FORMAT = SDL_AUDIO_F32;
 static constexpr int MIX_BUFFER_SAMPLES = 8192;
