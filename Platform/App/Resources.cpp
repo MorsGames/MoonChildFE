@@ -131,8 +131,7 @@ static void EnsureBasePath()
     std::snprintf(WritablePath, sizeof(WritablePath), "%s", writeablePath);
 
     char portableFilePath[4096];
-    std::snprintf(portableFilePath, sizeof(portableFilePath), "%s%s", BasePath,
-                  ".portable");
+    std::snprintf(portableFilePath, sizeof(portableFilePath), "%s%s", BasePath, ".portable");
 
     bool isPortable = SDL_GetPathInfo(portableFilePath, NULL);
 

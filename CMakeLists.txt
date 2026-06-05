@@ -108,7 +108,7 @@ if(MOONCHILD_RENDERER_SDL3 AND NOT MOONCHILD_WINDOW_SDL3)
 endif()
 if(MOONCHILD_USE_OPENGL AND NOT MOONCHILD_WINDOW_SDL3)
     message(FATAL_ERROR
-        "OpenGL renderers require SDL3 for windowing!")
+        "OpenGL renderers require an SDL windowing backend!")
 endif()
 if(EMSCRIPTEN AND MOONCHILD_RENDERER_OPENGL)
     message(FATAL_ERROR
@@ -273,8 +273,8 @@ set(MOONCHILD_PLATFORM_SOURCES
     ${MOONCHILD_PLATFORM_DIR}/Bridges/DisplayBridge.cpp
     ${MOONCHILD_PLATFORM_DIR}/Bridges/InputBridge.cpp
     ${MOONCHILD_PLATFORM_DIR}/Bridges/MovieBridge.cpp
+    ${MOONCHILD_PLATFORM_DIR}/Audio/AudioEngine.cpp
     ${MOONCHILD_PLATFORM_DIR}/Audio/MP3MusicTrack.cpp
-    ${MOONCHILD_PLATFORM_DIR}/Audio/AudioMixer.cpp
 )
 
 # Backends

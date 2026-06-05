@@ -235,10 +235,8 @@ void GLESRenderer::DrawFrame(const unsigned char* rgbaPixels, int width, int hei
     glBindBuffer(GL_ARRAY_BUFFER, VertexBuffer);
     glEnableVertexAttribArray(LocPosition);
     glEnableVertexAttribArray(LocTexCoord);
-    glVertexAttribPointer(LocPosition, 2, GL_FLOAT, GL_FALSE,
-        4 * sizeof(GLfloat), reinterpret_cast<const GLvoid*>(0));
-    glVertexAttribPointer(LocTexCoord, 2, GL_FLOAT, GL_FALSE,
-        4 * sizeof(GLfloat), reinterpret_cast<const GLvoid*>(2 * sizeof(GLfloat)));
+    glVertexAttribPointer(LocPosition, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), reinterpret_cast<const GLvoid*>(0));
+    glVertexAttribPointer(LocTexCoord, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), reinterpret_cast<const GLvoid*>(2 * sizeof(GLfloat)));
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 

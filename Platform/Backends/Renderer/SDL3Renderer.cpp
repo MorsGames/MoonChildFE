@@ -69,12 +69,7 @@ bool SDL3Renderer::EnsureTexture(int width, int height)
         Texture = nullptr;
     }
 
-    Texture = SDL_CreateTexture(
-        Renderer,
-        SDL_PIXELFORMAT_RGBA32,
-        SDL_TEXTUREACCESS_STREAMING,
-        width,
-        height);
+    Texture = SDL_CreateTexture(Renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING, width, height);
 
     if (Texture == nullptr)
     {

@@ -42,6 +42,19 @@ extern void framework_ExitGame(void);
 extern HEARTBEAT_FN MC_preppuzzleselect(void);
 extern HEARTBEAT_FN MC_preptitlesequence(void);
 
+static void ResetFrameworkState()
+{
+    g_SettingsFlg = 0;
+    g_ReqKeyFlg = 0;
+    g_KeyTimeOut = 0;
+    gbGameLoop = true;
+    heartbeat = nullptr;
+    lvideo = nullptr;
+    laudio = nullptr;
+    ltimer = nullptr;
+    lmovie = nullptr;
+}
+
 Host::Host()
 {
     Backends = MakeDefaultBackends();
@@ -206,19 +219,6 @@ void Host::DetachBridges()
     InputBridge::Detach();
     DisplayBridge::Detach();
     AudioBridge::Detach();
-}
-
-static void ResetFrameworkState()
-{
-    g_SettingsFlg = 0;
-    g_ReqKeyFlg = 0;
-    g_KeyTimeOut = 0;
-    gbGameLoop = true;
-    heartbeat = nullptr;
-    lvideo = nullptr;
-    laudio = nullptr;
-    ltimer = nullptr;
-    lmovie = nullptr;
 }
 
 bool Host::InitializeFramework()

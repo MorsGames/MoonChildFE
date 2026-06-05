@@ -1,6 +1,6 @@
 #include "SDL3Audio.h"
 
-#include "AudioMixer.h"
+#include "AudioEngine.h"
 #include "MediaCatalog.h"
 #include "MP3MusicTrack.h"
 
@@ -11,7 +11,6 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
-#include <memory>
 #include <vector>
 
 extern const char* FullPath(const char* file);
@@ -44,9 +43,9 @@ struct MovieState
 };
 
 static SfxState Sfx;
-static AudioMixer SfxMixer;
 static MusicState Music;
 static MovieState Movie;
+static AudioEngine Audio;
 
 static float MixBuffer[MIX_BUFFER_SAMPLES];
 
@@ -71,8 +70,7 @@ static bool LoadWav(const char* path, std::vector<float>& outSamples, int& outFr
 
     Uint8* convertedData = nullptr;
     int convertedLen = 0;
-    const bool conversionOk = SDL_ConvertAudioSamples(&sourceSpec, sourceData, static_cast<int>(sourceLen),
-                                                      &targetSpec, &convertedData, &convertedLen);
+    const bool conversionOk = SDL_ConvertAudioSamples(&sourceSpec, sourceData, static_cast<int>(sourceLen), &targetSpec, &convertedData, &convertedLen);
     SDL_free(sourceData);
 
     if (!conversionOk)
@@ -98,8 +96,7 @@ static void CleanUpMusicStuff(MusicState& musicState)
     musicState.Active = false;
 }
 
-static void SDLCALL FeedMusicConverter(void* /*UserData*/, SDL_AudioStream* stream,
-                                       int AdditionalAmount, int /*TotalAmount*/)
+static void SDLCALL FeedMusicConverter(void* /*UserData*/, SDL_AudioStream* stream, int AdditionalAmount, int /*TotalAmount*/)
 {
     if (!Music.Active || !Music.Source.IsOpen())
     {
@@ -187,7 +184,7 @@ static void SDLCALL FeedSfx(void* /*UserData*/, SDL_AudioStream* stream, int add
     MixMusic(MixBuffer, sampleCount);
     MixMovie(MixBuffer, sampleCount);
 
-    SfxMixer.MixVoicesInto(MixBuffer, sampleCount);
+    Audio.MixVoicesInto(MixBuffer, sampleCount);
 
     for (int i = 0; i < sampleCount; i++)
     {
@@ -195,11 +192,6 @@ static void SDLCALL FeedSfx(void* /*UserData*/, SDL_AudioStream* stream, int add
     }
 
     SDL_PutAudioStreamData(stream, MixBuffer, byteCount);
-}
-
-static SoundAsset* ToAsset(SoundHandle handle)
-{
-    return reinterpret_cast<SoundAsset*>(handle);
 }
 
 SDL3Audio::SDL3Audio() = default;
@@ -264,185 +256,55 @@ SoundHandle SDL3Audio::CreateSound(int soundId, int maxPolyphony)
         return 0;
     }
 
-    const char* name = GetSoundEffect(soundId);
-    if (name == nullptr)
-    {
-        return 0;
-    }
-
-    std::unique_ptr<SoundAsset> asset(new SoundAsset());
-    asset->SoundId = soundId;
-    asset->MaxPolyphony = std::max(1, maxPolyphony);
-
-    char relBuf[512];
-    std::snprintf(relBuf, sizeof(relBuf), "audio/%s", name);
-    const char* path = FullPath(relBuf);
-    if (!LoadWav(path, asset->Samples, asset->FrameCount))
-    {
-        return 0;
-    }
-
-    return reinterpret_cast<SoundHandle>(asset.release());
+    return Audio.CreateSound(soundId, maxPolyphony, LoadWav);
 }
 
 void SDL3Audio::DestroySound(SoundHandle sound)
 {
-    SoundAsset* asset = ToAsset(sound);
-    if (asset == nullptr)
-    {
-        return;
-    }
-
     SDL_LockAudioStream(Sfx.Stream);
-    SfxMixer.DeactivateVoicesFor(asset);
+    Audio.DestroySound(sound);
     SDL_UnlockAudioStream(Sfx.Stream);
-
-    delete asset;
 }
 
 void SDL3Audio::PlayOneShot(SoundHandle sound, int32_t volume, int32_t pan)
 {
-    SoundAsset* asset = ToAsset(sound);
-    if (asset == nullptr)
-    {
-        return;
-    }
-
     SDL_LockAudioStream(Sfx.Stream);
-
-    ActiveVoice* slot = SfxMixer.AcquireVoiceSlot(asset);
-    slot->Asset = asset;
-    slot->FrameOffset = 0;
-    slot->Loop = false;
-    slot->Active = true;
-    slot->PlayId = SfxMixer.NextPlayId++;
-    slot->Volume = volume;
-    slot->Pan = pan;
-    AudioMixer::CalculateGain(volume, pan, slot->GainLeft, slot->GainRight);
-
+    Audio.PlayOneShot(sound, volume, pan);
     SDL_UnlockAudioStream(Sfx.Stream);
 }
 
 void SDL3Audio::PlayLoop(SoundHandle sound, int32_t volume, int32_t pan)
 {
-    SoundAsset* asset = ToAsset(sound);
-    if (asset == nullptr)
-    {
-        return;
-    }
-
     SDL_LockAudioStream(Sfx.Stream);
-
-    for (ActiveVoice& voice : SfxMixer.Voices)
-    {
-        if (voice.Active && voice.Asset == asset && voice.Loop)
-        {
-            voice.Volume = volume;
-            voice.Pan = pan;
-            AudioMixer::CalculateGain(volume, pan, voice.GainLeft, voice.GainRight);
-            SDL_UnlockAudioStream(Sfx.Stream);
-            return;
-        }
-    }
-
-    ActiveVoice* slot = SfxMixer.AcquireVoiceSlot(asset);
-    slot->Asset = asset;
-    slot->FrameOffset = 0;
-    slot->Loop = true;
-    slot->Active = true;
-    slot->PlayId = SfxMixer.NextPlayId++;
-    slot->Volume = volume;
-    slot->Pan = pan;
-    AudioMixer::CalculateGain(volume, pan, slot->GainLeft, slot->GainRight);
-
+    Audio.PlayLoop(sound, volume, pan);
     SDL_UnlockAudioStream(Sfx.Stream);
 }
 
 void SDL3Audio::StopSound(SoundHandle sound)
 {
-    SoundAsset* asset = ToAsset(sound);
-    if (asset == nullptr)
-    {
-        return;
-    }
-
     SDL_LockAudioStream(Sfx.Stream);
-    SfxMixer.DeactivateVoicesFor(asset);
+    Audio.StopSound(sound);
     SDL_UnlockAudioStream(Sfx.Stream);
 }
 
 void SDL3Audio::StopCurrent(SoundHandle sound)
 {
-    SoundAsset* asset = ToAsset(sound);
-    if (asset == nullptr)
-    {
-        return;
-    }
-
     SDL_LockAudioStream(Sfx.Stream);
-
-    ActiveVoice* newest = nullptr;
-    for (ActiveVoice& voice : SfxMixer.Voices)
-    {
-        if (voice.Active && voice.Asset == asset)
-        {
-            if (newest == nullptr || voice.PlayId > newest->PlayId)
-            {
-                newest = &voice;
-            }
-        }
-    }
-
-    if (newest != nullptr)
-    {
-        newest->Active = false;
-        newest->Asset = nullptr;
-    }
-
+    Audio.StopCurrent(sound);
     SDL_UnlockAudioStream(Sfx.Stream);
 }
 
 void SDL3Audio::SetVolume(SoundHandle sound, int32_t volume)
 {
-    SoundAsset* asset = ToAsset(sound);
-    if (asset == nullptr)
-    {
-        return;
-    }
-
     SDL_LockAudioStream(Sfx.Stream);
-
-    for (ActiveVoice& voice : SfxMixer.Voices)
-    {
-        if (voice.Active && voice.Asset == asset)
-        {
-            voice.Volume = volume;
-            AudioMixer::CalculateGain(voice.Volume, voice.Pan, voice.GainLeft, voice.GainRight);
-        }
-    }
-
+    Audio.SetVolume(sound, volume);
     SDL_UnlockAudioStream(Sfx.Stream);
 }
 
 void SDL3Audio::SetPan(SoundHandle sound, int32_t pan)
 {
-    SoundAsset* asset = ToAsset(sound);
-    if (asset == nullptr)
-    {
-        return;
-    }
-
     SDL_LockAudioStream(Sfx.Stream);
-
-    for (ActiveVoice& voice : SfxMixer.Voices)
-    {
-        if (voice.Active && voice.Asset == asset)
-        {
-            voice.Pan = pan;
-            AudioMixer::CalculateGain(voice.Volume, voice.Pan, voice.GainLeft, voice.GainRight);
-        }
-    }
-
+    Audio.SetPan(sound, pan);
     SDL_UnlockAudioStream(Sfx.Stream);
 }
 
@@ -452,7 +314,7 @@ void SDL3Audio::Reset()
 
     SDL_LockAudioStream(Sfx.Stream);
 
-    SfxMixer.ResetAllVoices();
+    Audio.Reset();
 
     SDL_UnlockAudioStream(Sfx.Stream);
 }

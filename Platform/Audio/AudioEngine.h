@@ -1,7 +1,9 @@
 #pragma once
 
+#include "IAudio.h"
+
+#include <cstddef>
 #include <cstdint>
-#include <stddef.h>
 #include <vector>
 
 struct SoundAsset
@@ -25,15 +27,32 @@ struct ActiveVoice
     uint64_t PlayId = 0;
 };
 
-class AudioMixer
+class AudioEngine
 {
 public:
+    using LoadSoundSamplesFn = bool (*)(const char* path, std::vector<float>& outSamples, int& outFrameCount);
+
+    SoundHandle CreateSound(int soundId, int maxPolyphony, LoadSoundSamplesFn loadSamples);
+    void DestroySound(SoundHandle sound);
+
+    void PlayOneShot(SoundHandle sound, int32_t volume, int32_t pan);
+    void PlayLoop(SoundHandle sound, int32_t volume, int32_t pan);
+
+    void StopSound(SoundHandle sound);
+    void StopCurrent(SoundHandle sound);
+
+    void SetVolume(SoundHandle sound, int32_t volume);
+    void SetPan(SoundHandle sound, int32_t pan);
+
+    void Reset();
+    void MixVoicesInto(float* mixBuffer, int sampleCount);
+
+private:
     static constexpr int MIX_CHANNELS = 2;
     static constexpr int MAX_VOICES = 64;
 
     static void CalculateGain(int32_t volume, int32_t pan, float& outLeft, float& outRight);
 
-    void MixVoicesInto(float* mixBuffer, int sampleCount);
     ActiveVoice* AcquireVoiceSlot(SoundAsset* asset);
     void DeactivateVoicesFor(const SoundAsset* asset);
     void ResetAllVoices();
