@@ -11,11 +11,6 @@ if(MOONCHILD_TARGET_ARCH STREQUAL "LinuxX64")
 # Linux AArch64
 elseif(MOONCHILD_TARGET_ARCH STREQUAL "LinuxArm64")
     set(CMAKE_SYSTEM_PROCESSOR aarch64)
-
-    if(NOT CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "aarch64")
-        set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
-    endif()
-
 else()
     message(FATAL_ERROR "Unsupported Linux target architecture: ${MOONCHILD_TARGET_ARCH}")
 endif()

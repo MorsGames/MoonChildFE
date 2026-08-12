@@ -1,48 +1,49 @@
-#include "SDL3Input.h"
+#include "SDL2Input.h"
 
 #include <cstdio>
 
 static constexpr int AXIS_THRESHOLD = 16000;
 
-SDL3Input::SDL3Input() = default;
+SDL2Input::SDL2Input() = default;
 
-SDL3Input::~SDL3Input()
+SDL2Input::~SDL2Input()
 {
     Destroy();
 }
 
-bool SDL3Input::Init()
+bool SDL2Input::Init()
 {
-    if (!SDL_InitSubSystem(SDL_INIT_GAMEPAD))
+    if (SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER) != 0)
     {
-        printf("SDL Gamepad subsystem initialization failed! %s\n", SDL_GetError());
+        printf("SDL GameController subsystem initialization failed! %s\n", SDL_GetError());
         return false;
     }
 
 #ifdef MOONCHILD_GAMECONTROLLERDB_PATH
-    if (SDL_AddGamepadMappingsFromFile(MOONCHILD_GAMECONTROLLERDB_PATH) < 0)
+    if (SDL_GameControllerAddMappingsFromFile(MOONCHILD_GAMECONTROLLERDB_PATH) < 0)
     {
-        printf("SDL gamepad mapping load failed! %s\n", SDL_GetError());
+        printf("SDL game controller mapping load failed! %s\n", SDL_GetError());
     }
 #endif
 
-    int count = 0;
-    if (SDL_JoystickID* ids = SDL_GetGamepads(&count))
+    const int count = SDL_NumJoysticks();
+    for (int i = 0; i < count; i++)
     {
-        if (count > 0)
+        if (SDL_IsGameController(i))
         {
-            Gamepad = SDL_OpenGamepad(ids[0]);
+            Gamepad = SDL_GameControllerOpen(i);
             if (Gamepad != nullptr)
             {
-                GamepadId = SDL_GetGamepadID(Gamepad);
+                SDL_Joystick* joystick = SDL_GameControllerGetJoystick(Gamepad);
+                GamepadId = SDL_JoystickInstanceID(joystick);
             }
+            break;
         }
-        SDL_free(ids);
     }
     return true;
 }
 
-void SDL3Input::Destroy()
+void SDL2Input::Destroy()
 {
     ClearAllSources();
     Queue.push_back(InputEvent::FocusLost());
@@ -50,18 +51,18 @@ void SDL3Input::Destroy()
     MouseDeltaRemainderY = 0.0f;
     if (Gamepad != nullptr)
     {
-        SDL_CloseGamepad(Gamepad);
+        SDL_GameControllerClose(Gamepad);
         Gamepad = nullptr;
         GamepadId = 0;
     }
-    SDL_QuitSubSystem(SDL_INIT_GAMEPAD);
+    SDL_QuitSubSystem(SDL_INIT_GAMECONTROLLER);
 }
 
-int SDL3Input::TranslateKey(int sdlKey)
+int SDL2Input::TranslateKey(int sdlKey)
 {
-    if (sdlKey >= SDLK_A && sdlKey <= SDLK_Z)
+    if (sdlKey >= SDLK_a && sdlKey <= SDLK_z)
     {
-        return 'A' + (sdlKey - SDLK_A);
+        return 'A' + (sdlKey - SDLK_a);
     }
     if (sdlKey >= SDLK_0 && sdlKey <= SDLK_9)
     {
@@ -90,37 +91,37 @@ int SDL3Input::TranslateKey(int sdlKey)
     }
 }
 
-int SDL3Input::TranslateGamepadButton(int button)
+int SDL2Input::TranslateGamepadButton(int button)
 {
     switch (button)
     {
-        case SDL_GAMEPAD_BUTTON_DPAD_LEFT:  return CB_LEFT;
-        case SDL_GAMEPAD_BUTTON_DPAD_RIGHT: return CB_RIGHT;
-        case SDL_GAMEPAD_BUTTON_DPAD_UP:    return CB_UP;
-        case SDL_GAMEPAD_BUTTON_DPAD_DOWN:  return CB_DOWN;
-        case SDL_GAMEPAD_BUTTON_SOUTH:      return CB_JUMP;
-        case SDL_GAMEPAD_BUTTON_WEST:       return CB_ACTION;
-        case SDL_GAMEPAD_BUTTON_EAST:       return CB_BACK;
-        case SDL_GAMEPAD_BUTTON_START:      return CB_START;
-        case SDL_GAMEPAD_BUTTON_BACK:       return CB_BACK;
+        case SDL_CONTROLLER_BUTTON_DPAD_LEFT:  return CB_LEFT;
+        case SDL_CONTROLLER_BUTTON_DPAD_RIGHT: return CB_RIGHT;
+        case SDL_CONTROLLER_BUTTON_DPAD_UP:    return CB_UP;
+        case SDL_CONTROLLER_BUTTON_DPAD_DOWN:  return CB_DOWN;
+        case SDL_CONTROLLER_BUTTON_A:          return CB_JUMP;
+        case SDL_CONTROLLER_BUTTON_X:          return CB_ACTION;
+        case SDL_CONTROLLER_BUTTON_B:          return CB_BACK;
+        case SDL_CONTROLLER_BUTTON_START:      return CB_START;
+        case SDL_CONTROLLER_BUTTON_BACK:       return CB_BACK;
         default:                            return INPUT_CODE_NONE;
     }
 }
 
-void SDL3Input::TranslateGamepadAxis(int axis, int& outNegativeCode, int& outPositiveCode)
+void SDL2Input::TranslateGamepadAxis(int axis, int& outNegativeCode, int& outPositiveCode)
 {
     outNegativeCode = INPUT_CODE_NONE;
     outPositiveCode = INPUT_CODE_NONE;
 
     switch (axis)
     {
-        case SDL_GAMEPAD_AXIS_LEFTX:
+        case SDL_CONTROLLER_AXIS_LEFTX:
         {
             outNegativeCode = CB_LEFT;
             outPositiveCode = CB_RIGHT;
             break;
         }
-        case SDL_GAMEPAD_AXIS_LEFTY:
+        case SDL_CONTROLLER_AXIS_LEFTY:
         {
             outNegativeCode = CB_UP;
             outPositiveCode = CB_DOWN;
@@ -133,7 +134,7 @@ void SDL3Input::TranslateGamepadAxis(int axis, int& outNegativeCode, int& outPos
     }
 }
 
-void SDL3Input::SetSource(uint32_t sourceId, int code, bool isDown)
+void SDL2Input::SetSource(uint32_t sourceId, int code, bool isDown)
 {
     if (isDown && code == INPUT_CODE_NONE)
     {
@@ -143,12 +144,12 @@ void SDL3Input::SetSource(uint32_t sourceId, int code, bool isDown)
     Queue.push_back({sourceId, code, isDown});
 }
 
-void SDL3Input::ClearAllSources()
+void SDL2Input::ClearAllSources()
 {
     Queue.push_back({0, 0, false});
 }
 
-void SDL3Input::OnKeyEvent(int nativeKeyCode, bool isDown, bool isRepeat)
+void SDL2Input::OnKeyEvent(int nativeKeyCode, bool isDown, bool isRepeat)
 {
     if (isRepeat)
     {
@@ -163,7 +164,7 @@ void SDL3Input::OnKeyEvent(int nativeKeyCode, bool isDown, bool isRepeat)
     SetSource(sourceId, code, isDown);
 }
 
-void SDL3Input::OnMouseMovement(float x, float y, float xrel, float yrel)
+void SDL2Input::OnMouseMovement(float x, float y, float xrel, float yrel)
 {
     const float deltaX = xrel + MouseDeltaRemainderX;
     const float deltaY = yrel + MouseDeltaRemainderY;
@@ -176,7 +177,7 @@ void SDL3Input::OnMouseMovement(float x, float y, float xrel, float yrel)
     Queue.push_back(InputEvent::MouseMove(static_cast<int>(x), static_cast<int>(y), wholeDeltaX, wholeDeltaY));
 }
 
-void SDL3Input::OnMouseButton(int button, bool isDown, float x, float y)
+void SDL2Input::OnMouseButton(int button, bool isDown, float x, float y)
 {
     int mappedButton = 0;
     switch (button)
@@ -207,30 +208,36 @@ void SDL3Input::OnMouseButton(int button, bool isDown, float x, float y)
     Queue.push_back(InputEvent::MouseButton(mappedButton, isDown, static_cast<int>(x), static_cast<int>(y)));
 }
 
-void SDL3Input::OnGamepadConnected(int instanceId)
+void SDL2Input::OnGamepadConnected(int instanceId)
 {
     if (Gamepad == nullptr)
     {
-        Gamepad = SDL_OpenGamepad(static_cast<SDL_JoystickID>(instanceId));
+        if (!SDL_IsGameController(instanceId))
+        {
+            return;
+        }
+
+        Gamepad = SDL_GameControllerOpen(instanceId);
         if (Gamepad != nullptr)
         {
-            GamepadId = SDL_GetGamepadID(Gamepad);
+            SDL_Joystick* joystick = SDL_GameControllerGetJoystick(Gamepad);
+            GamepadId = SDL_JoystickInstanceID(joystick);
         }
     }
 }
 
-void SDL3Input::OnGamepadDisconnected(int instanceId)
+void SDL2Input::OnGamepadDisconnected(int instanceId)
 {
     if (Gamepad != nullptr && GamepadId == static_cast<SDL_JoystickID>(instanceId))
     {
         ClearAllSources();
-        SDL_CloseGamepad(Gamepad);
+        SDL_GameControllerClose(Gamepad);
         Gamepad = nullptr;
         GamepadId = 0;
     }
 }
 
-void SDL3Input::OnGamepadButton(int instanceId, int button, bool isDown)
+void SDL2Input::OnGamepadButton(int instanceId, int button, bool isDown)
 {
     if (Gamepad == nullptr || GamepadId != static_cast<SDL_JoystickID>(instanceId))
     {
@@ -245,7 +252,7 @@ void SDL3Input::OnGamepadButton(int instanceId, int button, bool isDown)
     SetSource(sourceId, code, isDown);
 }
 
-void SDL3Input::OnGamepadAxis(int instanceId, int axis, int value)
+void SDL2Input::OnGamepadAxis(int instanceId, int axis, int value)
 {
     if (Gamepad == nullptr || GamepadId != static_cast<SDL_JoystickID>(instanceId))
     {
@@ -266,7 +273,7 @@ void SDL3Input::OnGamepadAxis(int instanceId, int axis, int value)
     SetSource(posSourceId, positiveCode, value >=  AXIS_THRESHOLD);
 }
 
-void SDL3Input::OnFocusLost()
+void SDL2Input::OnFocusLost()
 {
     ClearAllSources();
     Queue.push_back(InputEvent::FocusLost());
@@ -274,7 +281,7 @@ void SDL3Input::OnFocusLost()
     MouseDeltaRemainderY = 0.0f;
 }
 
-bool SDL3Input::PollNext(InputEvent& out)
+bool SDL2Input::PollNext(InputEvent& out)
 {
     if (Queue.empty())
     {

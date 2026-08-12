@@ -1,8 +1,8 @@
 #include "Resources.h"
 
 #include "globals.hpp"
-#include "SDL3/SDL_filesystem.h"
 
+#include <cstdlib>
 #include <cstdio>
 #include <cstring>
 
@@ -11,23 +11,37 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #else
+#include <climits>
+#include <sys/stat.h>
 #include <unistd.h>
+#ifndef MAX_PATH
+#define MAX_PATH PATH_MAX
+#endif
+#endif
+
+#ifdef __APPLE__
+#include <mach-o/dyld.h>
 #endif
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #endif
 
-static char BasePath[2048];
-static char DataPath[2048];
-static char WritablePath[2048];
+static char BasePath[MAX_PATH];
+static char DataPath[MAX_PATH];
+static char WritablePath[MAX_PATH];
+
+static bool IsPathSeparator(char ch)
+{
+    return ch == '/' || ch == '\\';
+}
 
 static void TrimToParentDirectory(char* path)
 {
     char* last = nullptr;
     for (char* p = path; *p != '\0'; ++p)
     {
-        if (*p == '/' || *p == '\\')
+        if (IsPathSeparator(*p))
         {
             last = p;
         }
@@ -42,64 +56,38 @@ static void TrimToParentDirectory(char* path)
     }
 }
 
-static void FailedToGetPathsViaSDL()
+static bool PathExists(const char* path, bool lookingForDir)
 {
-    char exeDir[4096];
-    exeDir[0] = '\0';
+#ifdef _WIN32
+    const DWORD attrs = GetFileAttributesA(path);
+    if (attrs == INVALID_FILE_ATTRIBUTES)
+    {
+        return false;
+    }
+    const bool isDir = (attrs & FILE_ATTRIBUTE_DIRECTORY) != 0;
+    return lookingForDir ? isDir : !isDir;
+#else
+    struct stat info;
+    if (stat(path, &info) != 0)
+    {
+        return false;
+    }
+    return lookingForDir ? S_ISDIR(info.st_mode) : S_ISREG(info.st_mode);
+#endif
+}
+
+static bool CreateDirectoryIfMissing(const char* path)
+{
+    if (path[0] == '\0' || PathExists(path, true))
+    {
+        return true;
+    }
 
 #ifdef _WIN32
-    char buffer[MAX_PATH];
-    DWORD len = GetModuleFileNameA(nullptr, buffer, MAX_PATH);
-    if (len > 0 && len < MAX_PATH)
-    {
-        std::snprintf(exeDir, sizeof(exeDir), "%s", buffer);
-        TrimToParentDirectory(exeDir);
-    }
+    return CreateDirectoryA(path, nullptr) != 0 || GetLastError() == ERROR_ALREADY_EXISTS;
 #else
-#ifdef __linux__
-    char buffer[4096];
-    ssize_t len = readlink("/proc/self/exe", buffer, sizeof(buffer) - 1);
-    if (len > 0)
-    {
-        buffer[len] = '\0';
-        std::snprintf(exeDir, sizeof(exeDir), "%s", buffer);
-        TrimToParentDirectory(exeDir);
-    }
+    return mkdir(path, 0755) == 0 || PathExists(path, true);
 #endif
-#endif
-
-    if (exeDir[0] == '\0')
-    {
-        char cwd[4096];
-#ifdef _WIN32
-        if (GetCurrentDirectoryA(sizeof(cwd), cwd) > 0)
-        {
-            std::snprintf(exeDir, sizeof(exeDir), "%s", cwd);
-        }
-#else
-        if (getcwd(cwd, sizeof(cwd)) != nullptr)
-        {
-            std::snprintf(exeDir, sizeof(exeDir), "%s", cwd);
-        }
-#endif
-    }
-
-    if (exeDir[0] != '\0')
-    {
-        const size_t n = std::strlen(exeDir);
-        if (n > 0 && exeDir[n - 1] != '/' && exeDir[n - 1] != '\\')
-        {
-            if (n + 1 < sizeof(exeDir))
-            {
-                exeDir[n] = '/';
-                exeDir[n + 1] = '\0';
-            }
-        }
-    }
-
-    std::snprintf(BasePath, sizeof(BasePath), "%s", exeDir);
-    std::snprintf(DataPath, sizeof(DataPath), "%s%s", BasePath, "data/");
-    std::snprintf(WritablePath, sizeof(WritablePath), "%s", BasePath);
 }
 
 static void EnsureBasePath()
@@ -114,37 +102,136 @@ static void EnsureBasePath()
     std::snprintf(DataPath, sizeof(DataPath), "/data/");
     std::snprintf(WritablePath, sizeof(WritablePath), "/persistent/");
 #else
-    char exeDir[4096];
-    char writeablePath[4096];
-    std::snprintf(exeDir, sizeof(exeDir), "%s", SDL_GetBasePath());
-    std::snprintf(writeablePath, sizeof(writeablePath), "%s", SDL_GetPrefPath(NULL, "MoonchildFE"));
+    char exeDir[MAX_PATH];
+    exeDir[0] = '\0';
 
-    if (exeDir[0] == '\0' || writeablePath[0] == '\0')
+#ifdef _WIN32
+    char buffer[MAX_PATH];
+    DWORD len = GetModuleFileNameA(nullptr, buffer, MAX_PATH);
+    if (len > 0 && len < MAX_PATH)
     {
-        FailedToGetPathsViaSDL();
+        std::snprintf(exeDir, sizeof(exeDir), "%s", buffer);
+        TrimToParentDirectory(exeDir);
+    }
+#else
+#ifdef __APPLE__
+    char buffer[MAX_PATH];
+    uint32_t size = static_cast<uint32_t>(sizeof(buffer));
+    if (_NSGetExecutablePath(buffer, &size) == 0)
+    {
+        std::snprintf(exeDir, sizeof(exeDir), "%s", buffer);
+        TrimToParentDirectory(exeDir);
+    }
+#endif
+#ifdef __linux__
+    char buffer[MAX_PATH];
+    ssize_t len = readlink("/proc/self/exe", buffer, sizeof(buffer) - 1);
+    if (len > 0)
+    {
+        buffer[len] = '\0';
+        std::snprintf(exeDir, sizeof(exeDir), "%s", buffer);
+        TrimToParentDirectory(exeDir);
+    }
+#endif
+#endif
+
+    const size_t n = std::strlen(exeDir);
+    if (n > 0 && !IsPathSeparator(exeDir[n - 1]) && n + 1 < sizeof(exeDir))
+    {
+        exeDir[n] = '/';
+        exeDir[n + 1] = '\0';
+    }
+
+#ifdef __APPLE__
+    std::snprintf(BasePath, sizeof(BasePath), "%s%s", exeDir, "../Resources/");
+#else
+    std::snprintf(BasePath, sizeof(BasePath), "%s", exeDir);
+#endif
+
+    std::snprintf(DataPath, sizeof(DataPath), "%s%s", BasePath, "data/");
+
+    char portableFilePath[MAX_PATH];
+    std::snprintf(portableFilePath, sizeof(portableFilePath), "%s%s", BasePath, ".portable");
+
+    if (PathExists(portableFilePath, false))
+    {
+        std::snprintf(WritablePath, sizeof(WritablePath), "%s", BasePath);
     }
     else
     {
+        WritablePath[0] = '\0';
 
-    std::snprintf(BasePath, sizeof(BasePath), "%s", exeDir);
-    std::snprintf(DataPath, sizeof(DataPath), "%s%s", BasePath, "data/");
-    std::snprintf(WritablePath, sizeof(WritablePath), "%s", writeablePath);
+#ifdef _WIN32
+        const char* appData = std::getenv("APPDATA");
+        if (appData != nullptr && appData[0] != '\0')
+        {
+            std::snprintf(WritablePath, sizeof(WritablePath), "%s/MoonchildFE/", appData);
+        }
+        else
+        {
+            const char* userProfile = std::getenv("USERPROFILE");
+            if (userProfile != nullptr && userProfile[0] != '\0')
+            {
+                std::snprintf(WritablePath, sizeof(WritablePath), "%s/AppData/Roaming/MoonchildFE/", userProfile);
+            }
+        }
+#elif defined(__APPLE__)
+        const char* home = std::getenv("HOME");
+        if (home != nullptr && home[0] != '\0')
+        {
+            std::snprintf(WritablePath, sizeof(WritablePath), "%s/Library/Application Support/MoonchildFE/", home);
+        }
+#else
+        const char* xdgDataHome = std::getenv("XDG_DATA_HOME");
+        if (xdgDataHome != nullptr && xdgDataHome[0] != '\0')
+        {
+            std::snprintf(WritablePath, sizeof(WritablePath), "%s/MoonchildFE/", xdgDataHome);
+        }
+        else
+        {
+            const char* home = std::getenv("HOME");
+            if (home != nullptr && home[0] != '\0')
+            {
+                std::snprintf(WritablePath, sizeof(WritablePath), "%s/.local/share/MoonchildFE/", home);
+            }
+        }
+#endif
 
-    char portableFilePath[4096];
-    std::snprintf(portableFilePath, sizeof(portableFilePath), "%s%s", BasePath, ".portable");
+        if (WritablePath[0] != '\0')
+        {
+            char scratch[MAX_PATH];
+            std::snprintf(scratch, sizeof(scratch), "%s", WritablePath);
 
-    bool isPortable = SDL_GetPathInfo(portableFilePath, NULL);
+            const size_t len = std::strlen(scratch);
+            size_t start = IsPathSeparator(scratch[0]) ? 1 : 0;
+#ifdef _WIN32
+            if (len >= 3 && scratch[1] == ':' && IsPathSeparator(scratch[2]))
+            {
+                start = 3;
+            }
+#endif
 
-    if (isPortable) {
-      std::snprintf(WritablePath, sizeof(WritablePath), "%s", BasePath);
+            for (size_t i = start; i < len; ++i)
+            {
+                if (!IsPathSeparator(scratch[i]))
+                {
+                    continue;
+                }
+
+                scratch[i] = '\0';
+                CreateDirectoryIfMissing(scratch);
+                scratch[i] = '/';
+            }
+
+            CreateDirectoryIfMissing(scratch);
+        }
     }
-  }
 
 #endif
 }
 
-static char FullPathBuf[2048];
-static char WritablePathBuf[2048];
+static char FullPathBuf[MAX_PATH];
+static char WritablePathBuf[MAX_PATH];
 
 const char* FullPath(const char* file)
 {

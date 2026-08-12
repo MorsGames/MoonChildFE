@@ -59,8 +59,6 @@
         "MOONCHILD_TARGET_ARCH": "LinuxArm64",
         "CMAKE_C_COMPILER": "clang",
         "CMAKE_CXX_COMPILER": "clang++",
-        "CMAKE_C_COMPILER_TARGET": "aarch64-linux-gnu",
-        "CMAKE_CXX_COMPILER_TARGET": "aarch64-linux-gnu",
         "CMAKE_C_FLAGS_DEBUG": "-O0",
         "CMAKE_CXX_FLAGS_DEBUG": "-O0",
         "CMAKE_C_FLAGS_RELEASE": "-O3",

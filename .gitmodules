@@ -10,3 +10,6 @@
 [submodule "Libraries/pl_mpeg"]
 	path = Libraries/pl_mpeg
 	url = https://github.com/phoboslab/pl_mpeg.git
+[submodule "Libraries/SDL2"]
+	path = Libraries/SDL2
+	url = https://github.com/libsdl-org/SDL.git

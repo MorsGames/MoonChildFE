@@ -419,35 +419,53 @@ bool SDL3Audio::OpenMovieStream(int sampleRate, int channels)
         return false;
     }
 
+    SDL_LockAudioStream(Sfx.Stream);
     Movie.Converter = converter;
+    SDL_UnlockAudioStream(Sfx.Stream);
+
     return true;
 }
 
 void SDL3Audio::SubmitMovieAudio(const float* samples, int sampleCount)
 {
-    if (Movie.Converter == nullptr || samples == nullptr || sampleCount <= 0)
+    if (Sfx.Stream == nullptr || samples == nullptr || sampleCount <= 0)
     {
         return;
     }
 
     const int bytes = sampleCount * static_cast<int>(sizeof(float));
 
-    SDL_LockAudioStream(Movie.Converter);
-    SDL_PutAudioStreamData(Movie.Converter, samples, bytes);
-    SDL_UnlockAudioStream(Movie.Converter);
+    SDL_LockAudioStream(Sfx.Stream);
+
+    SDL_AudioStream* converter = Movie.Converter;
+    if (converter != nullptr)
+    {
+        SDL_LockAudioStream(converter);
+        SDL_PutAudioStreamData(converter, samples, bytes);
+        SDL_UnlockAudioStream(converter);
+    }
+
+    SDL_UnlockAudioStream(Sfx.Stream);
 }
 
 void SDL3Audio::CloseMovieStream()
 {
-    SDL_AudioStream* converter = Movie.Converter;
-    if (converter == nullptr)
+    if (Sfx.Stream == nullptr)
     {
+        SDL_DestroyAudioStream(Movie.Converter);
+        Movie.Converter = nullptr;
         return;
     }
 
     SDL_LockAudioStream(Sfx.Stream);
+
+    SDL_AudioStream* converter = Movie.Converter;
     Movie.Converter = nullptr;
+
     SDL_UnlockAudioStream(Sfx.Stream);
 
-    SDL_DestroyAudioStream(converter);
+    if (converter != nullptr)
+    {
+        SDL_DestroyAudioStream(converter);
+    }
 }
