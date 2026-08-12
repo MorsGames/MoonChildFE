@@ -77,24 +77,7 @@ namespace InputBridge
         std::memset(KeyRefCount, 0, sizeof(KeyRefCount));
     }
 
-    static void SubmitEvent(const InputEvent& inputEvent);
-    static void QueueRepeats();
-
-    void Attach(IInput* input)
-    {
-        InputBackend = input;
-        ClearState();
-        ResetMouseState();
-    }
-
-    void Detach()
-    {
-        InputBackend = nullptr;
-        ClearState();
-        ResetMouseState();
-    }
-
-    void OnMouseMovement(int x, int y, int deltaX, int deltaY)
+    static void ApplyMouseMovement(int x, int y, int deltaX, int deltaY)
     {
         g_MouseXCurrent = x;
         g_MouseYCurrent = y;
@@ -108,7 +91,7 @@ namespace InputBridge
         }
     }
 
-    void OnMouseButton(int button, bool isDown, int x, int y)
+    static void ApplyMouseButton(int button, bool isDown, int x, int y)
     {
         g_MouseXCurrent = x;
         g_MouseYCurrent = y;
@@ -147,19 +130,46 @@ namespace InputBridge
         }
     }
 
-    void OnFocusLost()
+    static void SubmitEvent(const InputEvent& inputEvent);
+    static void QueueRepeats();
+
+    void Attach(IInput* input)
     {
+        InputBackend = input;
+        ClearState();
+        ResetMouseState();
+    }
+
+    void Detach()
+    {
+        InputBackend = nullptr;
+        ClearState();
         ResetMouseState();
     }
 
     void Tick()
     {
-        if (InputBackend != nullptr)
+        InputEvent inputEvent;
+        while (InputBackend->PollNext(inputEvent))
         {
-            InputEvent inputEvent;
-            while (InputBackend->PollNext(inputEvent))
+            switch (inputEvent.Kind)
             {
-                SubmitEvent(inputEvent);
+                case INPUT_EVENT_MOUSE_MOVE:
+                    ApplyMouseMovement(inputEvent.X, inputEvent.Y, inputEvent.DeltaX, inputEvent.DeltaY);
+                    break;
+
+                case INPUT_EVENT_MOUSE_BUTTON:
+                    ApplyMouseButton(inputEvent.Button, inputEvent.IsDown, inputEvent.X, inputEvent.Y);
+                    break;
+
+                case INPUT_EVENT_FOCUS_LOST:
+                    ResetMouseState();
+                    break;
+
+                case INPUT_EVENT_SOURCE:
+                default:
+                    SubmitEvent(inputEvent);
+                    break;
             }
         }
 

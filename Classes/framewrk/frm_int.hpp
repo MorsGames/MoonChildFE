@@ -25,6 +25,7 @@
 #include "pcxff.hpp"
 #include "movie.hpp"
 #include "fastfile.h"
+#include "keys.hpp"
 
 #define FW_KEYUP       (0)
 #define FW_KEYDOWN     (1)
@@ -39,6 +40,9 @@
 void framework_util_SetMouse(int x, int y);
 void framework_usefastfile(bool offon);
 void framework_util_displayerror(char *errstring);
+
+int framework_ShouldShowCursor(void);
+int framework_WantRelativeMouse(void);
 
 #define RASTCOL(r,g,b) _outp(0x3c8,0);   \
                        _outp(0x3c9,(r)); \

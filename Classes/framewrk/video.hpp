@@ -62,6 +62,12 @@ public:
   void   DisplayChars(unsigned char *Cyfers, int x, int y);
   void   DisplayChars2(unsigned char *Cyfers, int x, int y);
 
+  typedef void (*FullscreenChangeCallback)(int enabled);
+  void   set_fullscreen(int enabled);
+  void   set_vsync(int enabled);
+  void   set_cursor_visibility(int enabled);
+  void   set_fullscreen_change_callback(FullscreenChangeCallback callback);
+
 //  LPDIRECTDRAW get_ddraw(void) {return glpDirectDraw;}   //DON'T USE EXTERNALLY!!!!    #######
 //  LPDIRECTDRAWSURFACE get_fddraw(void) { return glpFrontBuffer; }  // DON'T USE EXTERNALLY!!!! #######
 //  LPDIRECTDRAWSURFACE get_bddraw(void) { return glpBackBuffer; }   // DON'T USE EXTERNALLY!!!! #######

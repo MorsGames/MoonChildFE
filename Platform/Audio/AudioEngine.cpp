@@ -264,7 +264,7 @@ ActiveVoice* AudioEngine::AcquireVoiceSlot(SoundAsset* asset)
         {
             oldestActive = &voice;
         }
-        if (asset != nullptr && voice.Asset == asset)
+        if (voice.Asset == asset)
         {
             matching++;
             if (oldestMatching == nullptr || voice.PlayId < oldestMatching->PlayId)
@@ -274,7 +274,7 @@ ActiveVoice* AudioEngine::AcquireVoiceSlot(SoundAsset* asset)
         }
     }
 
-    if (asset != nullptr && matching >= asset->MaxPolyphony)
+    if (matching >= asset->MaxPolyphony)
     {
         return oldestMatching;
     }

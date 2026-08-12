@@ -123,9 +123,6 @@ int	  FirstTimeShowCredzFlg;
 #include <glim.hpp>
 #include <time.h>
 
-#include "DisplayBridge.h"
-#include "InputBridge.h"
-
 #define PARA
 
 /* Various prototypes */
@@ -852,6 +849,24 @@ HEARTBEAT_FN MC_testje2(void)
 
 
 
+int framework_ShouldShowCursor(void)
+{
+  if (mcsmk != nullptr)
+  {
+    return 0;
+  }
+  if (heartbeat == reinterpret_cast<HEARTBEAT_FN>(MC_preppuzzleselect) || heartbeat == reinterpret_cast<HEARTBEAT_FN>(MC_preptitlesequence))
+  {
+    return 1;
+  }
+  return (editflg != 0 || ingameflg == 0 || puzzleactiveflg != 0) ? 1 : 0;
+}
+
+int framework_WantRelativeMouse(void)
+{
+  return editflg != 0 ? 1 : 0;
+}
+
 HEARTBEAT_FN framework_InitGame(Cvideo *newvideo, Caudio *newaudio, Ctimer *newtimer, Cmovie *newmovie)
 {
 	int TestBuf[4];
@@ -870,7 +885,7 @@ HEARTBEAT_FN framework_InitGame(Cvideo *newvideo, Caudio *newaudio, Ctimer *newt
   movie  = newmovie;
 
 #ifdef MOONCHILD_DESKTOP_MODE
-  DisplayBridge::SetFullscreenChangeCallback(sync_fullscreen);
+  video->set_fullscreen_change_callback(sync_fullscreen);
 #endif
 
   levelloadedflg = 0;
@@ -1131,13 +1146,13 @@ void load_options(void)
 
 #ifdef MOONCHILD_DESKTOP_MODE
   menu122[0].menutext = fullscreenflg ? fullscreenontxt : fullscreenofftxt;
-  DisplayBridge::SetFullscreen(fullscreenflg ? 1 : 0);
+  video->set_fullscreen(fullscreenflg ? 1 : 0);
 #endif
   menu122[gamespeedSlot].menutext = (gamespeedflg == MC_GAME_SPEED_50HZ) ? gamespeedmenu_50
                               : (gamespeedflg == MC_GAME_SPEED_60HZ) ? gamespeedmenu_60
                                                                     : gamespeedmenu_vs;
   menu122[easierSlot].menutext = easiervisualsflg ? easyvisontxt : easyvisofftxt;
-  DisplayBridge::SetVSync(gamespeedflg == MC_GAME_SPEED_VSYNC ? 1 : 0);
+  video->set_vsync(gamespeedflg == MC_GAME_SPEED_VSYNC ? 1 : 0);
   menu123[2].menutext = altmenutuneflg ? altmenuontxt : altmenuofftxt;
   menu1243[0].menutext = easiershootflg ? easiershoot_on : easiershoot_off;
   menu1243[1].menutext = speedrun_state.running ? speedrun_toggle_on : speedrun_toggle_off;
@@ -7502,7 +7517,7 @@ void menuf1221(void)
     {
       menu122[fullscreenSlot].menutext = fullscreenofftxt;
     }
-  DisplayBridge::SetFullscreen(fullscreenflg ? 1 : 0);
+  video->set_fullscreen(fullscreenflg ? 1 : 0);
   start_afterbuilditem = fullscreenSlot;
   menuleavefunc = (HEARTBEAT_FN) MC_buildmenu;
 }
@@ -7522,7 +7537,7 @@ void menuf1222(void)
       (gamespeedflg == MC_GAME_SPEED_50HZ)  ? gamespeedmenu_50
     : (gamespeedflg == MC_GAME_SPEED_60HZ) ? gamespeedmenu_60
                                           : gamespeedmenu_vs;
-  DisplayBridge::SetVSync(gamespeedflg == MC_GAME_SPEED_VSYNC ? 1 : 0);
+  video->set_vsync(gamespeedflg == MC_GAME_SPEED_VSYNC ? 1 : 0);
   start_afterbuilditem = gamespeedSlot;
   menuleavefunc = (HEARTBEAT_FN) MC_buildmenu;
 }

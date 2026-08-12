@@ -8,16 +8,6 @@
 #include "Resources.h"
 
 extern unsigned short gamespeedflg;
-extern unsigned short editflg;
-extern unsigned short ingameflg;
-extern unsigned short puzzleactiveflg;
-extern int g_MouseFlg;
-extern int g_MouseDeltaX;
-extern int g_MouseDeltaY;
-extern unsigned short mouselchng;
-extern unsigned short mouserchng;
-class Smack;
-extern Smack* mcsmk;
 
 #define _IN_MAIN
 #include "frm_int.hpp"
@@ -36,11 +26,14 @@ extern Smack* mcsmk;
 extern int g_SettingsFlg;
 extern int g_ReqKeyFlg;
 extern int g_KeyTimeOut;
+extern int g_MouseFlg;
+extern int g_MouseDeltaX;
+extern int g_MouseDeltaY;
+extern unsigned short mouselchng;
+extern unsigned short mouserchng;
 extern void framework_EventHandle(int event, int param);
 extern HEARTBEAT_FN framework_InitGame(Cvideo* video, Caudio* audio, Ctimer* timer, Cmovie* movie);
 extern void framework_ExitGame(void);
-extern HEARTBEAT_FN MC_preppuzzleselect(void);
-extern HEARTBEAT_FN MC_preptitlesequence(void);
 
 static void ResetFrameworkState()
 {
@@ -153,21 +146,15 @@ void Host::RunFrame()
     }
 
     bool exitRequested = false;
-    Backends.Window->SetRelativeMouseMode(editflg != 0);
+    Backends.Window->SetRelativeMouseMode(framework_WantRelativeMouse() != 0);
     Backends.Window->PumpOSEvents(Backends.Input.get(), exitRequested);
 
-    const HEARTBEAT_FN prepPuzzleHeartbeat = reinterpret_cast<HEARTBEAT_FN>(MC_preppuzzleselect);
-    const HEARTBEAT_FN prepTitleHeartbeat = reinterpret_cast<HEARTBEAT_FN>(MC_preptitlesequence);
-    const bool showCursor = 
-        (mcsmk == nullptr) && 
-        (
-            (heartbeat == prepPuzzleHeartbeat || heartbeat == prepTitleHeartbeat) || 
-            (editflg != 0 || ingameflg == 0 || puzzleactiveflg != 0)
-        );
-
     const int fps = (gamespeedflg == 1u) ? 50 : 60;
-    const bool shouldShow = showCursor && (InputBridge::GetMouseIdleFrames() < 3 * fps);
-    DisplayBridge::SetCursorVisibility(shouldShow);
+    const bool shouldShow = framework_ShouldShowCursor() != 0 && (InputBridge::GetMouseIdleFrames() < 3 * fps);
+    if (lvideo != nullptr)
+    {
+        lvideo->set_cursor_visibility(shouldShow ? 1 : 0);
+    }
 
     if (exitRequested)
     {

@@ -2,10 +2,11 @@
 
 #include "IRenderer.h"
 #include "IWindow.h"
+#include "frm_int.hpp"
 
 static IWindow* WindowBackend = nullptr;
 static IRenderer* RendererBackend = nullptr;
-static DisplayBridge::FullscreenChangeCallback FullscreenChanged = nullptr;
+static Cvideo::FullscreenChangeCallback FullscreenChanged = nullptr;
 
 namespace DisplayBridge
 {
@@ -22,11 +23,6 @@ namespace DisplayBridge
         FullscreenChanged = nullptr;
     }
 
-    void SetFullscreenChangeCallback(FullscreenChangeCallback callback)
-    {
-        FullscreenChanged = callback;
-    }
-
     void NotifyFullscreenChange(int enabled)
     {
         if (FullscreenChanged != nullptr)
@@ -34,19 +30,24 @@ namespace DisplayBridge
             FullscreenChanged(enabled != 0 ? 1 : 0);
         }
     }
+}
 
-    void SetFullscreen(int enabled)
-    {
-        WindowBackend->DisplaySetFullscreen(enabled != 0);
-    }
+void Cvideo::set_fullscreen(int enabled)
+{
+    WindowBackend->DisplaySetFullscreen(enabled != 0);
+}
 
-    void SetCursorVisibility(int enabled)
-    {
-        WindowBackend->SetCursorVisibility(enabled != 0);
-    }
+void Cvideo::set_vsync(int enabled)
+{
+    RendererBackend->DisplaySetVSync(enabled != 0);
+}
 
-    void SetVSync(int enabled)
-    {
-        RendererBackend->DisplaySetVSync(enabled != 0);
-    }
+void Cvideo::set_cursor_visibility(int enabled)
+{
+    WindowBackend->SetCursorVisibility(enabled != 0);
+}
+
+void Cvideo::set_fullscreen_change_callback(FullscreenChangeCallback callback)
+{
+    FullscreenChanged = callback;
 }

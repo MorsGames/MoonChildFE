@@ -88,8 +88,6 @@ void Cvideo::unlock_bbuffer(void)
 }
 
 
-//extern GXDisplayProperties g_gxdp;		// GX struct
-
 extern unsigned short *LoadingPic;
 extern unsigned short *SettingsPic;
 extern unsigned short *ButPic[6];

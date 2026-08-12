@@ -307,7 +307,6 @@ set(MOONCHILD_GAME_SOURCES
     ${MOONCHILD_GAME_DIR}/spike.cpp
     ${MOONCHILD_GAME_DIR}/stukhout.cpp
     ${MOONCHILD_GAME_DIR}/switsj.cpp
-    ${MOONCHILD_GAME_DIR}/test.cpp
     ${MOONCHILD_GAME_DIR}/trigger.cpp
     ${MOONCHILD_GAME_DIR}/vgdll.cpp
     ${MOONCHILD_GAME_DIR}/warp.cpp

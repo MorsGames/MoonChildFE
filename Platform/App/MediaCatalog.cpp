@@ -73,10 +73,6 @@ const MusicTrack* GetMusicTrack(int trackNumber)
 
 const char* GetMovieFile(const char* smkFilename)
 {
-    if (smkFilename == nullptr)
-    {
-        return nullptr;
-    }
     for (int i = 0; i < MOVIE_FILE_COUNT; i++)
     {
         if (std::strcmp(smkFilename, MOVIE_FILES[i].OriginalPath) == 0)

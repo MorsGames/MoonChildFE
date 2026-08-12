@@ -1,30 +1,11 @@
 #pragma once
 
+#include "keys.hpp"
+
 #include <cstdint>
 
 static constexpr uint32_t INPUT_SOURCE_CODE_MASK = 0x00FFFFFFu;
 static constexpr int INPUT_CODE_NONE = 0;  // sorry nothing
-
-static constexpr int VK_BACK   = 0x08;
-static constexpr int VK_TAB    = 0x09;
-static constexpr int VK_RETURN = 0x0D;
-static constexpr int VK_SHIFT  = 0x10;
-static constexpr int VK_CTRL   = 0x11;
-static constexpr int VK_ALT    = 0x12;
-static constexpr int VK_ESCAPE = 0x1B;
-static constexpr int VK_LEFT   = 37;
-static constexpr int VK_UP     = 38;
-static constexpr int VK_RIGHT  = 39;
-static constexpr int VK_DOWN   = 40;
-
-static constexpr int CB_LEFT   = 240;
-static constexpr int CB_RIGHT  = 241;
-static constexpr int CB_UP     = 242;
-static constexpr int CB_DOWN   = 243;
-static constexpr int CB_JUMP   = 244;
-static constexpr int CB_ACTION = 245;
-static constexpr int CB_START  = 246;
-static constexpr int CB_BACK   = 247;
 
 enum InputMouseButton : int
 {
@@ -41,15 +22,58 @@ enum InputSourceKind : uint32_t
     INPUT_SOURCE_GAMEPAD_AXIS_POS  = 0x04000000u
 };
 
+enum InputEventKind : uint8_t
+{
+    INPUT_EVENT_SOURCE = 0,
+    INPUT_EVENT_MOUSE_MOVE,
+    INPUT_EVENT_MOUSE_BUTTON,
+    INPUT_EVENT_FOCUS_LOST
+};
+
 struct InputEvent
 {
+    InputEventKind Kind = INPUT_EVENT_SOURCE;
     uint32_t SourceId = 0;
     int Code = 0;
     bool IsDown = false;
+    int X = 0;
+    int Y = 0;
+    int DeltaX = 0;
+    int DeltaY = 0;
+    int Button = 0;
 
     InputEvent() = default;
     InputEvent(int code, bool isDown) : Code(code), IsDown(isDown) {}
     InputEvent(uint32_t sourceId, int code, bool isDown) : SourceId(sourceId), Code(code), IsDown(isDown) {}
+
+    static InputEvent MouseMove(int x, int y, int deltaX, int deltaY)
+    {
+        InputEvent event;
+        event.Kind = INPUT_EVENT_MOUSE_MOVE;
+        event.X = x;
+        event.Y = y;
+        event.DeltaX = deltaX;
+        event.DeltaY = deltaY;
+        return event;
+    }
+
+    static InputEvent MouseButton(int button, bool isDown, int x, int y)
+    {
+        InputEvent event;
+        event.Kind = INPUT_EVENT_MOUSE_BUTTON;
+        event.Button = button;
+        event.IsDown = isDown;
+        event.X = x;
+        event.Y = y;
+        return event;
+    }
+
+    static InputEvent FocusLost()
+    {
+        InputEvent event;
+        event.Kind = INPUT_EVENT_FOCUS_LOST;
+        return event;
+    }
 };
 
 class IInput
