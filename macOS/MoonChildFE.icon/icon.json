@@ -7,9 +7,12 @@
   },
   "groups" : [
     {
+      "blur-material" : null,
+      "hidden" : false,
       "layers" : [
         {
-          "glass" : false,
+          "blend-mode" : "normal",
+          "glass" : true,
           "image-name" : "Face.png",
           "name" : "Face",
           "position" : {
@@ -21,13 +24,15 @@
           }
         }
       ],
+      "lighting" : "individual",
       "shadow" : {
         "kind" : "neutral",
-        "opacity" : 0.5
+        "opacity" : 0.6
       },
+      "specular" : true,
       "translucency" : {
-        "enabled" : true,
-        "value" : 0.5
+        "enabled" : false,
+        "value" : 0.2
       }
     }
   ],
