@@ -35,6 +35,7 @@ private:
     GLint LocSource = -1;
     GLint LocSourceSize = -1;
     GLint LocScale = -1;
+    GLint LocWidescreenOffset = -1;  /* Widescreen centering offset uniform */
 
     int ViewportWidth = 0;
     int ViewportHeight = 0;

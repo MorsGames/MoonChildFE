@@ -26,8 +26,15 @@ struct GameViewport
     float Height = 0.0f;
 };
 
-constexpr float GAME_WIDTH = 640.0f;
-constexpr float GAME_HEIGHT = 480.0f;
+/* Widescreen support - 16:9 aspect ratio */
+constexpr float GAME_BASE_WIDTH = 640.0f;
+constexpr float GAME_BASE_HEIGHT = 480.0f;
+/* Widescreen adds 224 pixels horizontally (640 + 224 = 864, which is 16:9 with 480 height) */
+constexpr float GAME_WIDESCREEN_PADDING = 112.0f;
+
+/* Default to widescreen mode for modern displays */
+constexpr float GAME_WIDTH = GAME_BASE_WIDTH + (2.0f * GAME_WIDESCREEN_PADDING);
+constexpr float GAME_HEIGHT = GAME_BASE_HEIGHT;
 
 static GameViewport GetGameViewport(SDL_Window* window)
 {

@@ -96,6 +96,12 @@ int	  FirstTimeShowCredzFlg;
 #include <stdio.h>
 #include <string.h>
 
+/* Widescreen support */
+#include <PlatformConfig.h>
+
+/* Widescreen menu centering offset */
+#define MC_WIDESCREEN_MENU_OFFSET_X ((GAME_FRAMEBUFFER_WIDTH - GAME_FRAMEBUFFER_BASE_WIDTH) / 2)
+
 //#include <direct.h>
 //#include <iostream.h>
 #include <stdlib.h>
@@ -832,9 +838,9 @@ HEARTBEAT_FN MC_testje1(void)
 
 
   video->palette(titlepal);
-	titlepic->draw_nokey(*vidblitbuf,0,0,0,0,640,480);
+	titlepic->draw_nokey(*vidblitbuf,MC_WIDESCREEN_MENU_OFFSET_X,0,0,0,640,480);
   video->swap();
-	titlepic->draw_nokey(*vidblitbuf,0,0,0,0,640,480);
+	titlepic->draw_nokey(*vidblitbuf,MC_WIDESCREEN_MENU_OFFSET_X,0,0,0,640,480);
 
 
 	return (HEARTBEAT_FN) MC_testje2;
@@ -914,7 +920,7 @@ HEARTBEAT_FN framework_InitGame(Cvideo *newvideo, Caudio *newaudio, Ctimer *newt
   video->scansync();
 
   vidblitbuf = new Cblitbuf(video);
-  vidblitbuf->set_clipping(0, 0, 640, 480);
+  vidblitbuf->set_clipping(0, 0, GAME_FRAMEBUFFER_WIDTH, GAME_FRAMEBUFFER_HEIGHT);
 
 
 
@@ -7146,8 +7152,8 @@ HEARTBEAT_FN MC_menu(void)
     keytab[CB_BACK] = 0;
     if (menupoint == menu1)
 	{
-      titlepic->draw_nokey(*refreshpic, 0, 0, 0, 0, 640, 480);
-      menuleavefunc = (HEARTBEAT_FN) MC_leavemenu;
+    titlepic->draw_nokey(*refreshpic, MC_WIDESCREEN_MENU_OFFSET_X, 0, 0, 0, 640, 480);
+    menuleavefunc = (HEARTBEAT_FN) MC_leavemenu;
 	}
     if (menupoint == menu12 || menupoint == menu13)
 	{

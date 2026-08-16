@@ -1,6 +1,10 @@
 #include <objects.hpp>
 #include <hoi.hpp>
 #include <sound.hpp>
+#include <prefs.hpp>
+
+/* Widescreen support */
+#include <PlatformConfig.h>
 
 
 static void object_process(int (*process)(VG_DLL_ITEM *));
@@ -218,15 +222,22 @@ int cb_object_visualise(VG_DLL_ITEM *item)
       x = obj->x - curplayer->worldx - curplayer->quakex;
       y = obj->y - curplayer->worldy - curplayer->quakey;
       
-#if 0
-      if (x > /*curplayer->worldx*/ + 630) return 0;
-      if (x < 0/*curplayer->worldx*/ ) return 0;
-      if (y > curplayer->curmap->mapsizey + 32) return 0;
-#endif
+      /* Widescreen support: Extended culling bounds for 16:9 aspect ratio */
+      /* Use prefs screenwidth for dynamic sizing - adds padding on each side */
+      INT16 screen_width = prefs->screenwidth;
+      
+      /* New widescreen culling: Only cull objects that are completely off-screen */
+      /* Allow objects down to -112 on the left edge to prevent "edge freeze" */
+      INT16 widescreen_left_bound = -GAME_FRAMEBUFFER_WIDESCREEN_PADDING;
+      if (x > screen_width) return 0;  // Culled if completely past right edge
+      if (x < widescreen_left_bound - 32) return 0;  // Culled if completely past left edge (-144)
+      
+      /* Widescreen: Apply +112px camera offset to match tile rendering */
+      INT16 widescreen_cam_offset = GAME_FRAMEBUFFER_WIDESCREEN_PADDING;  // +112
       
       if (obj->blitsizex && obj->blitsizey)
 	{
-	  if (obj->frame->draw(*curplayer->loadedmap->blitbuf,x , y,
+	  if (obj->frame->draw(*curplayer->loadedmap->blitbuf, x + widescreen_cam_offset, y,
 			       obj->blitstartx, obj->blitstarty,
 			       obj->blitstartx+obj->blitsizex, obj->blitstarty+obj->blitsizey))
 	    {
@@ -239,7 +250,7 @@ int cb_object_visualise(VG_DLL_ITEM *item)
 	}
       else  /* no size override */
 	{
-	  if ( obj->frame->draw(*curplayer->loadedmap->blitbuf,x , y ))
+	  if ( obj->frame->draw(*curplayer->loadedmap->blitbuf, x + widescreen_cam_offset, y ))
 	    {
 	      if (obj->visible<1024) obj->visible++;
 	    }

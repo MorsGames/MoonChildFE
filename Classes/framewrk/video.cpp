@@ -207,8 +207,10 @@ void Cvideo::swap(void)
     
     if((g_RenderMode%NUMRENDERMODES)==0) // nearest neigbour
     {
-        for (unsigned int y = 0; y < 480; y++) {
-            for (unsigned int x = 0; x < (640>>5); x++) {
+        /* Widescreen support: Use dynamic width from this->width instead of hardcoded 640 */
+        unsigned int pixelsPerRow = this->width;
+        for (unsigned int y = 0; y < this->height; y++) {
+            for (unsigned int x = 0; x < (pixelsPerRow>>5); x++) {
 //                *DestBuf++ = m_DibPalette32[*SrcPtr++];
                 UNROLL32
             }
@@ -453,6 +455,8 @@ void Cvideo::DisplayChars(unsigned char *Cijfers, int x, int y)
 		ScreenPtr = Screen;
 		CharsetPtr = charset + (Cijfer*36);
 
+		/* Widescreen support: Use dynamic width instead of hardcoded 640 */
+		unsigned int screenWidth = this->width;
 		for(y=0;y<6;y++)
 		{
 			for(x=0;x<6;x++)
@@ -460,14 +464,14 @@ void Cvideo::DisplayChars(unsigned char *Cijfers, int x, int y)
 				*ScreenPtr++ = *CharsetPtr;
 				*ScreenPtr++ = *CharsetPtr++;
 			}
-			ScreenPtr += (640-12);
+			ScreenPtr += (screenWidth-12);
 			CharsetPtr-=6;
 			for(x=0;x<6;x++)
 			{
 				*ScreenPtr++ = *CharsetPtr;
 				*ScreenPtr++ = *CharsetPtr++;
 			}
-			ScreenPtr += (640-12);
+			ScreenPtr += (screenWidth-12);
 		}
 		Screen+= 14;
 		Index--;

@@ -60,12 +60,19 @@ UINT32 blackdiamondlocations[13][7]; //7 per level... 13 levels
 UINT32 blackdiamondcollocations[13][7]; //7 per level... 13 levels
 
 
-/* editor variables */
+/* Widescreen support - 16:9 aspect ratio */
+#define MC_BASE_WIDTH 640
+#define MC_BASE_HEIGHT 480
+/* Widescreen adds 224 pixels horizontally (640 + 224 = 864, which is 16:9 with 480 height) */
+#define MC_WIDESCREEN_PADDING 112
+
+/* editor variables - now dynamically sized for widescreen */
 
 UINT16 cliptlx = 0;
 UINT16 cliptly = 0;
-UINT16 clipbrx = 640;
-UINT16 clipbry = 480;
+/* clipbrx/clipbry are now dynamically set based on game mode */
+UINT16 clipbrx = MC_BASE_WIDTH + (2 * MC_WIDESCREEN_PADDING);
+UINT16 clipbry = MC_BASE_HEIGHT;
 
 UINT16 sokomoved;
 UINT16 editflg = 0;            /* we don't start of in the editor */
@@ -378,7 +385,7 @@ PREFS defprefs = {
 //  300,
 //  400,
 
-  0,0,640,480,
+  0,0,640 + (2 * MC_WIDESCREEN_PADDING),480,  // Extended for widescreen
 
   PREFS_HIRES,
 //  'J',
@@ -407,6 +414,11 @@ PREFS defprefs = {
 //  'a',
 //  'd',
 //  's'
+    
+    // Widescreen support fields
+    MC_BASE_WIDTH,
+    MC_BASE_HEIGHT,
+    MC_WIDESCREEN_PADDING
 };
 
 PREFS *prefs = &defprefs;
